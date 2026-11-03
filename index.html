@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>AI说红楼 · 边读边查，不剧透的红楼人物志</title>
+  <meta name="description" content="辅助阅读《红楼梦》原著的互动网页：人物库、回目导读、关键词检索，并按「我已读到第几回」过滤，默认不剧透。底本为人民文学出版社120回本（程高本系统）。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#read=1&amp;tab=guide" aria-label="AI说红楼 首页">
+        <span class="seal" aria-hidden="true">红</span>
+        <span class="brand-text">
+          <strong class="brand-title">AI说红楼</strong>
+          <span class="brand-sub">边读边查 · 不剧透的红楼人物志</span>
+        </span>
+      </a>
+
+      <div class="read-control" role="group" aria-label="阅读进度设置">
+        <label class="read-label" for="read-input">我已读到</label>
+        <div class="stepper">
+          <button type="button" class="stepper-btn" id="read-prev" aria-label="减少一回">−</button>
+          <input id="read-input" class="read-input" type="number" inputmode="numeric" min="1" max="120" step="1" value="1" aria-describedby="read-hint">
+          <span class="read-unit">回</span>
+          <button type="button" class="stepper-btn" id="read-next" aria-label="增加一回">＋</button>
+        </div>
+        <p class="read-hint" id="read-hint">已读 1 / 120 回</p>
+      </div>
+
+      <div class="app-settings" role="group" aria-label="阅读偏好">
+        <button type="button" class="settings-btn" id="theme-toggle" data-action="toggle-theme" aria-pressed="false">🌙 深色</button>
+        <span class="settings-sep" aria-hidden="true">字号</span>
+        <button type="button" class="settings-btn" data-action="set-font" data-font="normal">标准</button>
+        <button type="button" class="settings-btn" data-action="set-font" data-font="large">大</button>
+        <button type="button" class="settings-btn" data-action="set-font" data-font="xl">特大</button>
+      </div>
+
+      <nav class="tabs" id="tabs" role="tablist" aria-label="页面栏目">
+        <button type="button" class="tab is-active" role="tab" id="tab-guide" aria-selected="true" aria-controls="view" data-tab="guide">本回导读</button>
+        <button type="button" class="tab" role="tab" id="tab-characters" aria-selected="false" aria-controls="view" data-tab="characters">人物库</button>
+        <button type="button" class="tab" role="tab" id="tab-relations" aria-selected="false" aria-controls="view" data-tab="relations">关系图</button>
+        <button type="button" class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view" data-tab="search">搜索</button>
+        <button type="button" class="tab" role="tab" id="tab-learn" aria-selected="false" aria-controls="view" data-tab="learn">红学·时代</button>
+        <button type="button" class="tab" role="tab" id="tab-poems" aria-selected="false" aria-controls="view" data-tab="poems">诗词典故</button>
+      </nav>
+    </div>
+    <div class="progress-strip" aria-hidden="true"><span class="progress-fill" id="progress-fill"></span></div>
+  </header>
+
+  <main id="main">
+    <section class="edition-banner" id="edition-banner" aria-labelledby="edition-title">
+      <div class="banner-bar">
+        <span class="badge badge-version">版本</span>
+        <h1 id="edition-title">版本说明（重要）</h1>
+        <button type="button" class="ghost-btn" id="banner-toggle" aria-expanded="true" aria-controls="edition-body">收起</button>
+      </div>
+      <div class="banner-body" id="edition-body">
+        <p><strong>本网页以人民文学出版社 120 回本《红楼梦》（程高本系统；俞平伯校订、启功注释，程乙本底本）为整理底本</strong>，回目、人名、情节顺序均依此本。</p>
+        <p>《红楼梦》版本复杂：脂评本系统（甲戌本、庚辰本等）仅存前 80 回，部分回目文字、情节细节与程高本存在差异；不同整理本的回目划分也可能略有出入（例如第十七、十八回在部分印本中合署回目，本页为便于阅读按 120 回分列）。<strong>若你读的是脂本或其他整理本，回目编号请以你手中的书为准</strong>，对应人物首次出场与重要经历的回目可能不同。</p>
+        <ul class="banner-notes">
+          <li>「金陵十二钗」副册、又副册的完整名单在正文中并未全部开列，本页对这两册人物的归属采用红学研究中的通行说法，已在人物卡与图例中标注，请勿当作正文结论。</li>
+          <li>人物「归宿 / 结局」只依 120 回本正文整理；判词、曲文中的暗示归入「🔍 作品分析」，不当作正文情节。</li>
+          <li>页面提供「我已读到第 __ 回」的进度设置：人物经历、人物关系、搜索结果与每回导读默认只显示该回之前（含该回）的内容；后续内容须主动展开，且会标注「剧透」。</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="legend-bar" aria-label="三类内容图例">
+      <span class="legend-title">三类内容严格区分：</span>
+      <span class="type-tag tag-novel">📖 小说描写</span>
+      <span class="legend-desc">原著正文实写的情节、对话、场景。</span>
+      <span class="type-tag tag-analysis">🔍 作品分析</span>
+      <span class="legend-desc">红学解读、人物评价与艺术分析；后人观点，非正文。</span>
+      <span class="type-tag tag-context">🏛️ 时代背景</span>
+      <span class="legend-desc">有史料依据的清代制度、服饰、饮食、官制、宗法等背景；史实，非小说虚构。</span>
+    </div>
+
+    <noscript>
+      <section class="notice-card">
+        <h2>需要启用 JavaScript</h2>
+        <p>本页的人物库、回目导读与防剧透过滤依赖 JavaScript，请在浏览器中启用后重新打开。</p>
+      </section>
+    </noscript>
+
+    <section class="view" id="view" role="region" aria-label="正文内容" aria-live="polite">
+      <section class="notice-card">
+        <h2>正在加载红楼数据…</h2>
+        <p>若长时间没有内容，请确认 data/ 目录下的数据文件是否完整，或直接刷新页面。</p>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-main">AI说红楼 · 辅助阅读工具</p>
+    <p>底本：人民文学出版社 120 回本《红楼梦》（程高本系统；俞平伯校订、启功注释，程乙本底本）。前 80 回曹雪芹著；后 40 回无名氏续，程伟元、高鹗整理。</p>
+    <p>人物、回目、情节自 120 回本正文整理；🔍 作品分析与 🏛️ 时代背景均已分类标注，不代表原著正文。若你读的是脂评本或其他整理本，请以手中书本为准。</p>
+    <p class="footer-small">离线可用 · 无需联网 · 数据保存在本页文件中</p>
+  </footer>
+
+  <div class="onboarding-backdrop" id="onboarding" style="display:none" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div class="onboarding-card">
+      <h2 id="onboarding-title">👋 欢迎使用「AI说红楼」</h2>
+      <p>这是一个边读《红楼梦》边查人物、理关系、且默认不剧透的辅助阅读工具。上手三步：</p>
+      <ol>
+        <li>在顶部选择「我已读到第 __ 回」，全页内容只会展示到这一回为止。</li>
+        <li>去「人物库」看人物卡、在人物卡里看「人物关系图」；去「关系图」看贾府谱系。</li>
+        <li>在「本回导读」里点「我已读完本回」推进进度；后文内容默认帮你折叠，想跳着看才主动展开。</li>
+      </ol>
+      <p class="small muted">三种内容标签：📖 小说描写 · 🔍 作品分析（后人观点）· 🏛️ 时代背景（史实）。</p>
+      <div class="onboarding-actions">
+        <button type="button" class="btn" data-action="close-onboarding">开始阅读</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data/meta.js"></script>
+  <script src="data/annotations.js"></script>
+  <script src="data/characters-a1.js"></script>
+  <script src="data/characters-a2.js"></script>
+  <script src="data/characters-b1.js"></script>
+  <script src="data/characters-b2.js"></script>
+  <script src="data/characters-b3.js"></script>
+  <script src="data/characters-c1.js"></script>
+  <script src="data/chapters-1.js"></script>
+  <script src="data/chapters-2.js"></script>
+  <script src="data/chapters-3.js"></script>
+  <script src="data/family.js"></script>
+  <script src="data/panci.js"></script>
+  <script src="data/poems.js"></script>
+  <script src="data/glossary.js"></script>
+  <script src="data/hardwords.js"></script>
+  <script src="js/spoiler.js"></script>
+  <script src="js/relations.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
