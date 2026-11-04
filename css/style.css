@@ -739,6 +739,36 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
   .chapter-select { max-width: 14rem; }
 }
 
+/* ---------- 随文难词注解 ---------- */
+.hw-inline { border-bottom: 1px dashed var(--gold); cursor: help; color: var(--ochre); }
+.hw-inline:hover { border-bottom-color: var(--red); color: var(--red-dark); background: var(--gold-soft); }
+.hw-word-btn { font-family: var(--serif); font-size: 1rem; font-weight: 700; color: var(--red-dark); background: var(--red-soft); border-radius: 6px; padding: .1rem .55rem; cursor: default; }
+
+/* ---------- 人物对比 ---------- */
+.compare-card { border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--white); padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 1.1rem; }
+.compare-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.compare-title { font-size: 1.15rem; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.compare-people { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.compare-table { border: 1px solid var(--line-soft); border-radius: var(--radius-sm); overflow: hidden; }
+.compare-row { display: grid; grid-template-columns: 6.5rem 1fr 1fr; border-top: 1px solid var(--line-soft); }
+.compare-row:first-child { border-top: none; }
+.compare-row-head { background: var(--paper-2); font-weight: 700; }
+.cmp-dim { padding: .5rem .7rem; font-family: var(--sans); font-size: .8rem; color: var(--ink-soft); font-weight: 600; border-right: 1px solid var(--line-soft); }
+.cmp-val { padding: .5rem .7rem; font-size: .88rem; color: var(--ink); line-height: 1.6; border-right: 1px solid var(--line-soft); }
+.cmp-val:last-child { border-right: none; }
+.compare-note { font-size: .82rem; color: var(--ink-faint); margin-top: .55rem; line-height: 1.7; }
+@media (max-width: 560px) { .compare-row { grid-template-columns: 4.5rem 1fr 1fr; } .cmp-dim, .cmp-val { padding: .45rem .5rem; font-size: .8rem; } }
+
+/* ---------- 大观园地点索引 ---------- */
+.garden-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .9rem; }
+.garden-card { border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--white); padding: .85rem 1rem; box-shadow: var(--shadow); }
+.garden-head { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.garden-name { font-size: 1.1rem; font-weight: 700; color: var(--red-dark); letter-spacing: .05em; }
+.garden-features { font-family: var(--sans); font-size: .7rem; color: var(--ink-faint); }
+.garden-resident { font-size: .84rem; color: var(--ink-soft); margin-bottom: .3rem; }
+.garden-desc { font-size: .88rem; color: var(--ink-soft); line-height: 1.75; text-align: justify; margin-bottom: .4rem; }
+.garden-chapters { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; }
+.garden-meaning { font-size: .82rem; color: var(--jade); line-height: 1.7; text-align: justify; }
 
 
 
