@@ -828,6 +828,10 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
 .lit-item { display: flex; gap: .6rem; align-items: flex-start; margin-bottom: .6rem; font-size: .88rem; color: var(--ink-soft); line-height: 1.75; }
 .lit-item p { margin: 0; text-align: justify; }
 .lit-label { flex: 0 0 auto; font-family: var(--sans); font-size: .7rem; color: #fff; background: var(--red); border-radius: 4px; padding: .1rem .5rem; margin-top: .15rem; }
+
+/* ---------- 人物库分类：丫鬟按房分 ---------- */
+.servant-group { margin-bottom: 1rem; }
+.servant-group-title { font-size: .95rem; color: var(--red-dark); letter-spacing: .06em; margin: .3rem 0 .5rem; font-family: var(--sans); }
 .focus-info { margin-top: 1rem; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--paper-2); padding: .8rem 1rem; }
 .focus-title { font-size: 1.05rem; color: var(--red-dark); margin-bottom: .5rem; }
 .focus-rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .9rem; }
