@@ -207,12 +207,76 @@
     return out.join("");
   }
 
+
+  /* ---------- 人物关系图（SVG，四类连线，按房分/家族分列） ---------- */
+  function renderRelationMap(graph, opts) {
+    opts = opts || {};
+    var readAt = opts.readAt || 1;
+    var focus = opts.focus || "";
+    var isRevealed = function (n) { return opts.expand ? true : (!n.chapter || n.chapter <= readAt); };
+    var groups = graph.groups || [];
+    var nodes = graph.nodes || [];
+    var edges = graph.edges || [];
+
+    var colW = 168, rowH = 52, nodeW = 118, nodeH = 32, topPad = 50, leftPad = 12;
+    var gi = {}; groups.forEach(function (g, i) { gi[g.id] = i; });
+    var rows = {}; groups.forEach(function (g) { rows[g.id] = 0; });
+    var pos = {};
+    nodes.forEach(function (n) {
+      var c = gi[n.group] != null ? gi[n.group] : 0;
+      var r = rows[n.group] || 0; rows[n.group] = r + 1;
+      var x = leftPad + c * colW + (colW - nodeW) / 2;
+      var y = topPad + r * rowH;
+      pos[n.id] = { x: x, y: y, cx: x + nodeW / 2, cy: y + nodeH / 2, node: n };
+    });
+    var maxRows = 1; groups.forEach(function (g) { if ((rows[g.id] || 1) > maxRows) maxRows = rows[g.id]; });
+    var W = leftPad * 2 + groups.length * colW;
+    var H = topPad + maxRows * rowH + 16;
+
+    var out = [];
+    out.push('<svg class="relmap" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="人物关系图" style="min-width:' + W + 'px">');
+    out.push('<style>.relmap text{font-family:inherit}.rm-edge{stroke-width:1.6;fill:none}.rm-edge.blood{stroke:#2b2723}.rm-edge.marriage{stroke:#9c2b23}.rm-edge.qin{stroke:#3f516b;stroke-dasharray:5 4}.rm-edge.servant{stroke:#8a8073;stroke-dasharray:1 4;stroke-linecap:round}.rm-edge.dim{opacity:.10}.rm-edge.hl{stroke-width:3}.rm-elabel{font-size:9.5px;fill:#5d554a}.rm-elabel.dim{opacity:.12}.rm-elabel-bg{fill:#fffdf8}.rm-elabel-bg.dim{opacity:.15}.rm-node rect{fill:#fffdf8;stroke:#d9cbb0;stroke-width:1.3}.rm-node text{font-size:12px;fill:#2b2723;pointer-events:none}.rm-node.dim rect{opacity:.28}.rm-node.dim text{opacity:.3}.rm-node.focus rect{stroke:#9c2b23;stroke-width:2.6}.rm-node.new rect{stroke:#b08a4f;stroke-width:2.6}.rm-node{cursor:pointer}</style>');
+    groups.forEach(function (g, i) {
+      var x = leftPad + i * colW + colW / 2;
+      out.push('<text x="' + x + '" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#7a1f19">' + esc(g.label) + '</text>');
+    });
+    // edges
+    edges.forEach(function (e) {
+      var a = pos[e.a], b = pos[e.b]; if (!a || !b) return;
+      var dim = !isRevealed(a.node) || !isRevealed(b.node);
+      var hl = false;
+      if (focus) { if (focus === e.a || focus === e.b) hl = true; else dim = true; }
+      var cls = "rm-edge " + (e.type || "blood") + (dim ? " dim" : "") + (hl ? " hl" : "");
+      out.push('<line class="' + cls + '" x1="' + a.cx.toFixed(1) + '" y1="' + a.cy.toFixed(1) + '" x2="' + b.cx.toFixed(1) + '" y2="' + b.cy.toFixed(1) + '"><title>' + esc((a.node.name) + " — " + (e.label || "") + " — " + (b.node.name)) + '</title></line>');
+      var mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
+      var label = e.label || "";
+      var lw = label.length * 9 + 6;
+      out.push('<rect class="rm-elabel-bg' + (dim ? " dim" : "") + '" x="' + (mx - lw / 2).toFixed(1) + '" y="' + (my - 7).toFixed(1) + '" width="' + lw + '" height="13" rx="3"/>');
+      out.push('<text class="rm-elabel' + (dim ? " dim" : "") + '" x="' + mx.toFixed(1) + '" y="' + (my + 3).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
+    });
+    // nodes
+    nodes.forEach(function (n) {
+      var p = pos[n.id]; if (!p) return;
+      var rev = isRevealed(n);
+      var isFocus = focus === n.id;
+      var isNew = rev && n.chapter === readAt;
+      var cls = "rm-node" + (rev ? "" : " dim") + (isFocus ? " focus" : "") + (isNew ? " new" : "");
+      var label = rev ? n.name : "□□□";
+      out.push('<g class="' + cls + '"' + (n.charId ? ' data-action="focus-rel" data-id="' + esc(n.id) + '"' : '') + '>');
+      out.push('<rect x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" width="' + nodeW + '" height="' + nodeH + '" rx="7"/>');
+      out.push('<text x="' + p.cx.toFixed(1) + '" y="' + (p.cy + 4).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
+      out.push('<title>' + esc(rev ? n.name : "未出场") + '</title>');
+      out.push("</g>");
+    });
+    out.push("</svg>");
+    return out.join("");
+  }
+
   return {
     esc: esc,
     renderFamilyTree: renderFamilyTree,
     renderRelationGraph: renderRelationGraph,
-    buildRelationIndex: buildRelationIndex,
-    renderRelationTable: renderRelationTable,
+    renderRelationMap: renderRelationMap,
     personRevealed: personRevealed
   };
 });
