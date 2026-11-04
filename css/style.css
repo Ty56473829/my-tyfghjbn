@@ -770,5 +770,12 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
 .garden-chapters { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; }
 .garden-meaning { font-size: .82rem; color: var(--jade); line-height: 1.7; text-align: justify; }
 
+/* ---------- 原著/白话双栏对照 ---------- */
+.contrast-cols { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+.contrast-col { border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--paper-2); padding: .6rem .8rem; }
+.contrast-label { font-family: var(--sans); font-size: .74rem; color: var(--red-dark); font-weight: 600; margin-bottom: .35rem; letter-spacing: .04em; }
+.contrast-col .summary-text { font-size: .92rem; line-height: 1.85; }
+.contrast-toggle { margin-top: .55rem; }
+@media (max-width: 700px) { .contrast-cols { grid-template-columns: 1fr; } }
 
 
