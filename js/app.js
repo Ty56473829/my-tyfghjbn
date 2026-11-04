@@ -837,7 +837,7 @@
   /* ---------------- 关系图 ---------------- */
   function renderRelations() {
     var out = [];
-    out.push(pageHead("关系图", "贾府与史、王、林、薛四大家族的人物关系图：连线的颜色与线型代表关系类型，点击人物可聚焦查看其全部牵绊。"));
+    out.push(pageHead("关系图", "贾府与史、王、林、薛四大家族的人物关系图：**横向同一排为同辈**，竖向连线为父子/母女，夫妻左右并排；连线的颜色与线型代表关系类型，点击人物可聚焦查看其全部牵绊。"));
     if (!DATA.relgraph) {
       out.push(emptyState("关系数据尚未就绪", "data/relgraph.js 未加载或为空。"));
       return out.join("");
@@ -858,7 +858,8 @@
     out.push('<span class="rel-legend-item"><span class="rel-line blood"></span>血缘（父子 / 母女）</span>');
     out.push('<span class="rel-legend-item"><span class="rel-line marriage"></span>婚姻（夫妻）</span>');
     out.push('<span class="rel-legend-item"><span class="rel-line qin"></span>姻亲表亲</span>');
-    out.push('<span class="rel-legend-item"><span class="rel-line servant"></span>主仆</span>');
+    out.push('<span class="rel-legend-item"><span class="rel-line servant"></span>主仆（悬浮显示）</span>');
+    out.push('<span class="rel-legend-item">横向同排 = 同辈 · 竖线 = 父子/母女 · 左右并排 = 夫妻 · 金框嫡出 / 蓝框庶出</span>');
     out.push("</div>");
     if (R) out.push('<div class="relmap-wrap">' + R.renderRelationMap(G, { readAt: state.readAt, expand: state.relationsExpand, focus: state.focusRel, view: state.relView }) + '</div>');
     else out.push(emptyState("渲染模块未加载", "js/relations.js 未正确加载。"));
