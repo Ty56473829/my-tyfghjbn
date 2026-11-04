@@ -7,7 +7,7 @@
 
   var S = window.HLM_SPOILER;
   var META = window.HLM_META || {};
-  var TABS = ["guide", "characters", "relations", "search", "learn", "poems"];
+  var TABS = ["guide", "characters", "relations", "search", "learn", "poems", "compare", "garden"];
   var GROUP_KEYS = ["core", "zhengce", "fuce", "youfuce", "supporting"];
   var READ_KEY = "hlm.readAt";
   var BANNER_KEY = "hlm.bannerCollapsed";
@@ -15,7 +15,7 @@
   var FONT_KEY = "hlm.font";
   var ONBOARD_KEY = "hlm.onboarded";
 
-  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, meta: META };
+  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, compare: [], garden: [], meta: META };
   var charById = {};
   var charByName = {};
   var chapByN = {};
@@ -34,6 +34,7 @@
     hwWord: "",
     learnChapter: 1,
     spoilerMode: "none",
+    annotate: true,
     group: "all",
     charQuery: "",
     query: ""
@@ -145,6 +146,8 @@
     DATA.glossary = Array.isArray(window.HLM_GLOSSARY) ? window.HLM_GLOSSARY : [];
     var hw = Array.isArray(window.HLM_HARDWORDS) ? window.HLM_HARDWORDS : [];
     hw.forEach(function (ch) { if (ch && Number.isInteger(ch.chapter) && Array.isArray(ch.words)) DATA.hardwords[ch.chapter] = ch.words; });
+    DATA.compare = Array.isArray(window.HLM_COMPARE) ? window.HLM_COMPARE : [];
+    DATA.garden = Array.isArray(window.HLM_GARDEN) ? window.HLM_GARDEN : [];
     DATA.characters.sort(function (a, b) {
       var ca = a.firstAppearance && a.firstAppearance.chapter || 999;
       var cb = b.firstAppearance && b.firstAppearance.chapter || 999;
@@ -296,6 +299,8 @@
     else if (state.tab === "search") view.innerHTML = renderSearch();
     else if (state.tab === "learn") view.innerHTML = renderLearn();
     else if (state.tab === "poems") view.innerHTML = renderPoems();
+    else if (state.tab === "compare") view.innerHTML = renderCompare();
+    else if (state.tab === "garden") view.innerHTML = renderGarden();
     else view.innerHTML = renderGuide();
     if (state.tab === "search") renderSearchResultsOnly();
   }
@@ -322,13 +327,34 @@
     return DATA.hardwords[n] || [];
   }
 
+  function annotateText(text, words) {
+    var s = esc(text);
+    if (!words || !words.length) return s;
+    var list = words.slice().sort(function (a, b) { return (b.word || "").length - (a.word || "").length; });
+    var markers = [];
+    list.forEach(function (w, i) {
+      if (!w.word || s.indexOf(w.word) < 0) return;
+      var mk = "\u0001HW" + i + "\u0001";
+      s = s.split(w.word).join(mk);
+      markers.push({ mk: mk, word: w.word, meaning: w.meaning || "" });
+    });
+    markers.forEach(function (m) {
+      var span = '<span class="hw-inline" data-hw="' + esc(m.word) + '" title="' + esc(m.meaning) + '">' + esc(m.word) + "</span>";
+      s = s.split(m.mk).join(span);
+    });
+    return s;
+  }
+
+  function guideText(text, words) {
+    return state.annotate ? annotateText(text, words) : esc(text);
+  }
+
   function renderHardWordItem(w, chapter) {
     var cat = HARDWORD_CATS[w.category] || { icon: "", label: w.category || "" };
-    var active = state.hwWord === w.word;
     var out = [];
-    out.push('<div class="hardword-item' + (active ? " is-active" : "") + '">');
+    out.push('<div class="hardword-item" data-hw-entry="' + esc(w.word) + '">');
     out.push('<div class="hw-head">');
-    out.push('<button type="button" class="hw-word-btn" data-action="highlight-word" data-word="' + esc(w.word) + '">' + esc(w.word) + "</button>");
+    out.push('<span class="hw-word-btn">' + esc(w.word) + "</span>");
     out.push('<span class="hw-cat">' + cat.icon + " " + esc(cat.label) + "</span>");
     out.push("</div>");
     out.push('<div class="hw-example">' + highlightTerm(w.example, w.word) + ' <span class="hw-chapter">（第' + chapter.n + "回）</span></div>");
@@ -346,8 +372,8 @@
     if (!list.length) {
       out.push('<p class="small muted">本回暂未整理难词注释。</p>');
     } else {
-      var clearBtn = state.hwWord ? '<button type="button" class="btn btn-ghost btn-sm" data-action="clear-highlight">清除高亮</button>' : "";
-      out.push('<p class="small muted">点击词条，可在上方导读正文里高亮它出现的位置；只收真正影响理解的难词。 ' + clearBtn + "</p>");
+      var annotateBtn = '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-annotate">' + (state.annotate ? "关闭随文标注" : "开启随文标注") + "</button>";
+      out.push('<p class="small muted">已自动给导读正文里的难词加下划线标注：悬停看释义、点击跳到此表。 ' + annotateBtn + "</p>");
       out.push('<div class="hardwords-list">');
       list.forEach(function (w) { out.push(renderHardWordItem(w, chapter)); });
       out.push("</div>");
@@ -367,6 +393,7 @@
     if (!chapter) return emptyState("本回数据尚未就绪", "第 " + state.chapter + " 回的导读数据尚未加载。");
     state.chapter = clampInt(state.chapter, 1, state.readAt);
     chapter = chapByN[state.chapter] || chapter;
+    var hwWords = hardwordsForChapter(chapter.n);
 
     var options = "";
     for (var i = 1; i <= state.readAt; i++) {
@@ -392,7 +419,7 @@
     out.push('<p class="chapter-progress-note">已读到第 ' + state.readAt + " 回：你正在读的这一回，可以放心查看本页。</p>");
     out.push("</div>");
 
-    out.push(guideSection("本回导读", "novel", '<p class="summary-text">' + highlightTerm(chapter.summary, state.hwWord) + "</p>"));
+    out.push(guideSection("本回导读", "novel", '<p class="summary-text">' + guideText(chapter.summary, hwWords) + "</p>"));
 
     var chars = chapter.newCharacters || [];
     if (chars.length) {
@@ -407,22 +434,22 @@
 
     var events = chapter.keyEvents || [];
     if (events.length) {
-      out.push(guideSection("关键事件", "novel", '<ul class="event-list">' + events.map(function (s) { return "<li>" + highlightTerm(s, state.hwWord) + "</li>"; }).join("") + "</ul>"));
+      out.push(guideSection("关键事件", "novel", '<ul class="event-list">' + events.map(function (s) { return "<li>" + guideText(s, hwWords) + "</li>"; }).join("") + "</ul>"));
     }
 
     var fores = chapter.foreshadowing || [];
     if (fores.length) {
-      out.push(guideSection("埋下的伏笔", "novel", '<ul class="foreshadow-list">' + fores.map(function (s) { return "<li>" + highlightTerm(s, state.hwWord) + "</li>"; }).join("") + "</ul>"));
+      out.push(guideSection("埋下的伏笔", "novel", '<ul class="foreshadow-list">' + fores.map(function (s) { return "<li>" + guideText(s, hwWords) + "</li>"; }).join("") + "</ul>"));
     }
 
     var analyses = chapter.analysis || [];
     if (analyses.length) {
-      out.push(guideSection("红学视角", "analysis", '<div class="analysis-list">' + analyses.map(function (s) { return '<div class="annotation">' + highlightTerm(s, state.hwWord) + "</div>"; }).join("") + "</div>"));
+      out.push(guideSection("红学视角", "analysis", '<div class="analysis-list">' + analyses.map(function (s) { return '<div class="annotation">' + guideText(s, hwWords) + "</div>"; }).join("") + "</div>"));
     }
 
     var contexts = chapter.context || [];
     if (contexts.length) {
-      out.push(guideSection("时代背景", "context", '<div class="analysis-list">' + contexts.map(function (s) { return '<div class="annotation is-context">' + highlightTerm(s, state.hwWord) + "</div>"; }).join("") + "</div>"));
+      out.push(guideSection("时代背景", "context", '<div class="analysis-list">' + contexts.map(function (s) { return '<div class="annotation is-context">' + guideText(s, hwWords) + "</div>"; }).join("") + "</div>"));
     }
 
     out.push(renderHardWords(chapter));
@@ -778,6 +805,64 @@
     return out.join("");
   }
 
+  /* ---------------- 人物对比 ---------------- */
+  function renderCompare() {
+    var out = [];
+    out.push(pageHead("人物对比", "横向对比几组关键人物，帮你理清异同；属 🔍 作品分析（非正文），只列常见解读、不作优劣评判。"));
+    if (!DATA.compare.length) { out.push(emptyState("对比数据尚未就绪", "data/compare.js 未加载或为空。")); return out.join(""); }
+    DATA.compare.forEach(function (cmp) { out.push(renderCompareCard(cmp)); });
+    return out.join("");
+  }
+
+  function renderCompareCard(cmp) {
+    var head = cmp.people.map(function (p) {
+      return (p.charId && charById[p.charId])
+        ? '<button type="button" class="chip" data-action="open-char" data-id="' + esc(p.charId) + '">' + esc(p.name) + "</button>"
+        : '<span class="chip">' + esc(p.name) + "</span>";
+    }).join(' <span class="small muted">vs</span> ');
+    var out = [];
+    out.push('<article class="compare-card">');
+    out.push('<div class="compare-head"><h3 class="compare-title">' + esc(cmp.title) + '</h3>' + typeTag("analysis") + "</div>");
+    out.push('<div class="compare-people">' + head + "</div>");
+    out.push('<div class="compare-table">');
+    out.push('<div class="compare-row compare-row-head"><span class="cmp-dim">维度</span>' + cmp.people.map(function (p) { return '<span class="cmp-val">' + esc(p.name) + "</span>"; }).join("") + "</div>");
+    (cmp.dimensions || []).forEach(function (d) {
+      out.push('<div class="compare-row"><span class="cmp-dim">' + esc(d.label) + "</span>" + (d.values || []).map(function (v) { return '<span class="cmp-val">' + esc(v) + "</span>"; }).join("") + "</div>");
+    });
+    out.push("</div>");
+    if (cmp.note) out.push('<p class="compare-note">' + esc(cmp.note) + "</p>");
+    if (cmp.edition) out.push('<span class="learn-edition">📚 ' + esc(cmp.edition) + "</span>");
+    out.push("</article>");
+    return out.join("");
+  }
+
+  /* ---------------- 大观园地点索引 ---------------- */
+  function renderGarden() {
+    var out = [];
+    out.push(pageHead("大观园地点索引", "园中主要居所与活动处：点名字跳人物卡、点回目跳导读；「寓意」为 🔍 作品分析。"));
+    if (!DATA.garden.length) { out.push(emptyState("地点数据尚未就绪", "data/garden.js 未加载或为空。")); return out.join(""); }
+    out.push('<div class="garden-grid">');
+    DATA.garden.forEach(function (g) { out.push(renderGardenCard(g)); });
+    out.push("</div>");
+    return out.join("");
+  }
+
+  function renderGardenCard(g) {
+    var residentHtml = (g.charId && charById[g.charId])
+      ? '<button type="button" class="chip" data-action="open-char" data-id="' + esc(g.charId) + '">' + esc(g.resident) + "</button>"
+      : (g.resident ? '<span class="chip">' + esc(g.resident) + "</span>" : '<span class="chip">公共活动处</span>');
+    var chapterChips = (g.chapters || []).map(function (n) { return chapterBadge(n); }).join(" ");
+    var out = [];
+    out.push('<article class="garden-card">');
+    out.push('<div class="garden-head"><h3 class="garden-name">' + esc(g.name) + '</h3><span class="garden-features">' + esc(g.features || "") + "</span></div>");
+    out.push('<div class="garden-resident">居者：' + residentHtml + "</div>");
+    out.push('<p class="garden-desc">' + esc(g.desc) + "</p>");
+    out.push('<div class="garden-chapters">' + chapterChips + "</div>");
+    if (g.meaning) out.push('<div class="garden-meaning">🔍 ' + esc(g.meaning) + "</div>");
+    out.push("</article>");
+    return out.join("");
+  }
+
   /* ---------------- 搜索 ---------------- */
   function searchExamples() {
     return ["黛玉", "凤辣子", "葬花", "省亲", "抄检", "刘姥姥"].map(function (q) {
@@ -1054,7 +1139,18 @@
       } else if (action === "clear-highlight") {
         state.hwWord = "";
         render();
+      } else if (action === "toggle-annotate") {
+        state.annotate = !state.annotate;
+        render();
       }
+    });
+
+    document.addEventListener("click", function (ev) {
+      var inline = ev.target && ev.target.closest ? ev.target.closest(".hw-inline") : null;
+      if (!inline) return;
+      var w = inline.getAttribute("data-hw") || "";
+      var entry = document.querySelector('[data-hw-entry="' + w + '"]');
+      if (entry && entry.scrollIntoView) entry.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
     document.addEventListener("input", function (ev) {
