@@ -1,7 +1,6 @@
 /* 《AI说红楼》逐回难词表：随文白话 / 方言 / 俗语 / 典章器物 注释。
  * 结构：window.HLM_HARDWORDS = [ { chapter, words: [ { word, example, meaning, category, note? } ] } ]
  * category：baihua 古代白话口语 | fangyan 方言 | suyu 俗语/歇后语/谚语 | dianzhang 典章/称谓/身份 | qiwu 器物/服饰/饮食/建筑 | diangu 典故/诗词曲文
- * 只收真正影响理解的难词；例句为正文节选（非整段照抄）。
  */
 window.HLM_HARDWORDS = [
   {
@@ -30,6 +29,23 @@ window.HLM_HARDWORDS = [
         "example": "跛足道人……口内念着几句言词，道是《好了歌》。",
         "meaning": "与癞头和尚相对的「一僧一道」中的道士，跛脚，负责点化甄士隐、柳湘莲等。",
         "category": "dianzhang"
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "words": [
+      {
+        "word": "百足之虫，死而不僵",
+        "example": "古人有云：「百足之虫，死而不僵」",
+        "meaning": "比喻大家族虽已衰败，一时还不能彻底倒下。冷子兴以此说贾府架子未倒、内囊已空。",
+        "category": "suyu"
+      },
+      {
+        "word": "运筹谋画",
+        "example": "安富尊荣者尽多，运筹谋画者无一",
+        "meaning": "筹划安排。指贾府安享富贵的人多，能出谋划策的人却没有。",
+        "category": "baihua"
       }
     ]
   },
@@ -155,6 +171,17 @@ window.HLM_HARDWORDS = [
     ]
   },
   {
+    "chapter": 8,
+    "words": [
+      {
+        "word": "金锁",
+        "example": "宝钗……将那一柄金锁摘了下来",
+        "meaning": "宝钗佩戴的金锁，上与通灵玉「莫失莫忘，仙寿恒昌」相对的八个字「不离不弃，芳龄永继」，是「金玉良缘」的由来。",
+        "category": "qiwu"
+      }
+    ]
+  },
+  {
     "chapter": 9,
     "words": [
       {
@@ -173,6 +200,23 @@ window.HLM_HARDWORDS = [
         "word": "撺掇",
         "example": "众人都撺掇他。",
         "meaning": "在一旁鼓动、怂恿别人做某事。",
+        "category": "baihua"
+      }
+    ]
+  },
+  {
+    "chapter": 12,
+    "words": [
+      {
+        "word": "风月宝鉴",
+        "example": "递与他一面镜子，说道：「这物出自太虚幻境空灵殿上，警幻仙子所制。」",
+        "meaning": "跛足道人送贾瑞的镜子：正面照见美人（情欲），反面照见骷髅（警示）。贾瑞只照正面而死，是全书劝世之喻。",
+        "category": "qiwu"
+      },
+      {
+        "word": "相思局",
+        "example": "王熙凤毒设相思局",
+        "meaning": "凤姐设下圈套捉弄害单相思的贾瑞。回目语。",
         "category": "baihua"
       }
     ]
@@ -201,6 +245,57 @@ window.HLM_HARDWORDS = [
     ]
   },
   {
+    "chapter": 16,
+    "words": [
+      {
+        "word": "省亲",
+        "example": "启请内廷銮舆入其私第",
+        "meaning": "后妃获准归家探望父母。元春晋封贤德妃，贾府遂建大观园以备省亲。",
+        "category": "dianzhang"
+      },
+      {
+        "word": "凤藻宫尚书",
+        "example": "晋封为凤藻宫尚书，加封贤德妃",
+        "meaning": "元春入宫后的封号。清代后宫有妃嫔之制，此系小说虚拟的封号。",
+        "category": "dianzhang"
+      }
+    ]
+  },
+  {
+    "chapter": 17,
+    "words": [
+      {
+        "word": "稻香村",
+        "example": "一面走，一面说，倏尔青山斜阻……「稻香村」",
+        "meaning": "大观园中仿农家田园的一处景致，土墙茅屋、杏花如霞，后为李纨居所。",
+        "category": "qiwu"
+      },
+      {
+        "word": "蓼汀花溆",
+        "example": "蓼汀花溆",
+        "meaning": "大观园中景点名，因宝玉嫌「蓼汀」重复而省去，只留「花溆」。",
+        "category": "qiwu"
+      }
+    ]
+  },
+  {
+    "chapter": 18,
+    "words": [
+      {
+        "word": "銮舆",
+        "example": "銮舆",
+        "meaning": "帝王或后妃乘坐的车驾。元妃省亲，銮舆归省。",
+        "category": "qiwu"
+      },
+      {
+        "word": "丑正三刻",
+        "example": "丑正三刻，请驾回銮",
+        "meaning": "丑时正三刻，约凌晨两点四十五分。元妃省亲有固定时辰，到点必须回宫，见礼制之严。",
+        "category": "dianzhang"
+      }
+    ]
+  },
+  {
     "chapter": 20,
     "words": [
       {
@@ -219,6 +314,17 @@ window.HLM_HARDWORDS = [
         "word": "讪讪的",
         "example": "贾环……讪讪的去了。",
         "meaning": "难为情、没趣、下不来台的样子。",
+        "category": "baihua"
+      }
+    ]
+  },
+  {
+    "chapter": 22,
+    "words": [
+      {
+        "word": "灯谜",
+        "example": "大家便说：「好，好，就制灯谜。」",
+        "meaning": "元宵节挂灯、猜谜的旧俗。贾府制灯谜，谜底多暗含人物命运。",
         "category": "baihua"
       }
     ]
@@ -271,6 +377,17 @@ window.HLM_HARDWORDS = [
         "example": "黛玉……把花扫了，装在这绢袋里，拿土埋上。",
         "meaning": "把落花埋进土里，黛玉借此寄托自己的身世之感。",
         "category": "baihua"
+      }
+    ]
+  },
+  {
+    "chapter": 28,
+    "words": [
+      {
+        "word": "汗巾",
+        "example": "将系小衣儿一条大红汗巾子解了下来，递与蒋玉菡",
+        "meaning": "系在腰间、擦汗用的巾帕。宝玉与琪官互换汗巾，是二人结交的信物，也为后文袭人嫁蒋玉菡埋线。",
+        "category": "qiwu"
       }
     ]
   },
@@ -389,6 +506,34 @@ window.HLM_HARDWORDS = [
     ]
   },
   {
+    "chapter": 47,
+    "words": [
+      {
+        "word": "串戏",
+        "example": "串戏",
+        "meaning": "客串演戏。柳湘莲会串戏，却被薛蟠误认作风月子弟。",
+        "category": "baihua"
+      },
+      {
+        "word": "柳湘莲",
+        "example": "冷二郎",
+        "meaning": "别号「冷二郎」，世家子弟，会串戏，性豪爽，后与尤三姐定亲。",
+        "category": "dianzhang"
+      }
+    ]
+  },
+  {
+    "chapter": 50,
+    "words": [
+      {
+        "word": "联句",
+        "example": "芦雪庵即景联句",
+        "meaning": "多人轮流接续作诗，各出上句、对下句。芦雪庵联句是园中女儿才情的大展示。",
+        "category": "baihua"
+      }
+    ]
+  },
+  {
     "chapter": 52,
     "words": [
       {
@@ -402,6 +547,34 @@ window.HLM_HARDWORDS = [
         "example": "这是孔雀金线织的。",
         "meaning": "用孔雀羽毛捻成的金线，极名贵，专织华服。",
         "category": "qiwu"
+      }
+    ]
+  },
+  {
+    "chapter": 64,
+    "words": [
+      {
+        "word": "五美吟",
+        "example": "幽淑女悲题五美吟",
+        "meaning": "黛玉所写五首咏古代美女（西施、虞姬、明妃、绿珠、红拂）的诗，借古人抒自己身世之慨。",
+        "category": "diangu"
+      }
+    ]
+  },
+  {
+    "chapter": 70,
+    "words": [
+      {
+        "word": "桃花行",
+        "example": "桃花行",
+        "meaning": "黛玉所作的长诗，以桃花与人对照，写春尽人憔悴。",
+        "category": "diangu"
+      },
+      {
+        "word": "唐多令",
+        "example": "唐多令",
+        "meaning": "词牌名。黛玉以《唐多令》填柳絮词，写飘泊无依之悲。",
+        "category": "diangu"
       }
     ]
   },
@@ -429,6 +602,34 @@ window.HLM_HARDWORDS = [
     ]
   },
   {
+    "chapter": 78,
+    "words": [
+      {
+        "word": "芙蓉诔",
+        "example": "痴公子杜撰芙蓉诔",
+        "meaning": "宝玉为晴雯写的祭文，以芙蓉为喻。回目语。",
+        "category": "diangu"
+      },
+      {
+        "word": "诔",
+        "example": "诔",
+        "meaning": "古代祭悼死者的文体，叙述死者德行。",
+        "category": "diangu"
+      }
+    ]
+  },
+  {
+    "chapter": 79,
+    "words": [
+      {
+        "word": "河东狮",
+        "example": "河东狮",
+        "meaning": "喻悍妒的妻子。夏金桂骄横善妒，被比为「河东狮」。",
+        "category": "suyu"
+      }
+    ]
+  },
+  {
     "chapter": 97,
     "words": [
       {
@@ -441,6 +642,23 @@ window.HLM_HARDWORDS = [
         "word": "出闺",
         "example": "宝钗出闺成大礼。",
         "meaning": "女子出嫁，「出闺」即出阁成婚。",
+        "category": "dianzhang"
+      }
+    ]
+  },
+  {
+    "chapter": 98,
+    "words": [
+      {
+        "word": "焚稿",
+        "example": "黛玉……将诗稿……投入火中",
+        "meaning": "烧掉诗稿。黛玉临终前焚稿断痴情，表示心死。",
+        "category": "baihua"
+      },
+      {
+        "word": "出闺",
+        "example": "宝钗出闺成大礼",
+        "meaning": "女子出嫁。回目语。",
         "category": "dianzhang"
       }
     ]
