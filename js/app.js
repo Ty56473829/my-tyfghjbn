@@ -683,17 +683,25 @@
   /* ---------------- 关系图 ---------------- */
   function renderRelations() {
     var out = [];
-    out.push(pageHead("关系图", "贾府宁荣二府的谱系，帮你理清人物血缘与婚姻关系；尚未读到的出场人物其姓名会折叠，默认不剧透。"));
+    out.push(pageHead("关系图", "贾府宁荣二府的谱系与人物关系：先看「人物关系速查表」直接查每人的父 / 母 / 配偶 / 子女 / 兄弟姊妹，再看谱系图理整体结构。"));
     if (!DATA.family) {
       out.push(emptyState("谱系数据尚未就绪", "data/family.js 未加载或为空。"));
       return out.join("");
     }
     var R = window.HLM_RELATIONS;
     out.push('<div class="relations-toolbar">');
-    out.push('<span class="relations-note">「□□□」表示该人物在你读到的第 ' + state.readAt + " 回之前尚未出场；点击已出场人物的姓名可打开其人物卡（含关系网）。</span>");
+    out.push('<span class="relations-note">「□□□」表示该人物在你读到的第 ' + state.readAt + " 回之前尚未出场；点击人物姓名可打开其人物卡。");
     out.push('<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-relations-expand">' + (state.relationsExpand ? "收起（恢复防剧透）" : "展开全部（含未出场人物，可能剧透）") + "</button>");
     out.push("</div>");
+    // 1) 关系速查表（直接回答“是兄弟还是父子”）
+    out.push('<section class="rel-quick"><h3 class="rel-section-title">人物关系速查表</h3>');
+    out.push(R ? R.renderRelationTable(DATA.family, { readAt: state.readAt, expand: state.relationsExpand, charById: charById }) : "");
+    out.push("</section>");
+    // 2) 谱系图
+    out.push('<section class="rel-tree"><h3 class="rel-section-title">贾府谱系图</h3>');
+    out.push('<div class="ft-legend"><span class="ft-legend-item">↓ 竖线向下 = 父子 / 母女</span><span class="ft-legend-item">⚭ = 夫妻</span><span class="ft-legend-item">同一层并列 = 兄弟姊妹</span></div>');
     out.push(R ? R.renderFamilyTree(DATA.family, { readAt: state.readAt, expand: state.relationsExpand, charById: charById }) : emptyState("渲染模块未加载", "js/relations.js 未正确加载。"));
+    out.push("</section>");
     return out.join("");
   }
 
