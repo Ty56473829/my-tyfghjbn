@@ -213,6 +213,7 @@
     opts = opts || {};
     var readAt = opts.readAt || 1;
     var focus = opts.focus || "";
+    var view = opts.view || "basic";
     var isRevealed = function (n) { return opts.expand ? true : (!n.chapter || n.chapter <= readAt); };
     var groups = graph.groups || [];
     var nodes = graph.nodes || [];
@@ -240,19 +241,37 @@
       var x = leftPad + i * colW + colW / 2;
       out.push('<text x="' + x + '" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#7a1f19">' + esc(g.label) + '</text>');
     });
-    // edges
+    // 主仆关系不画线，仅作悬浮提示
+    var servantMap = {};
     edges.forEach(function (e) {
+      if (e.type !== "servant") return;
+      (servantMap[e.a] = servantMap[e.a] || []).push(e.b);
+    });
+    // 按视图筛选边：basic 只留血缘+婚姻；focus 再加当前人物的姻亲；full 全部；主仆一律不画
+    var visEdges = edges.filter(function (e) {
+      if (e.type === "servant") return false;
+      if (view === "full") return true;
+      if (e.type === "blood" || e.type === "marriage") return true;
+      if (view === "focus" && focus && (e.a === focus || e.b === focus)) return true;
+      return false;
+    });
+    visEdges.forEach(function (e) {
       var a = pos[e.a], b = pos[e.b]; if (!a || !b) return;
       var dim = !isRevealed(a.node) || !isRevealed(b.node);
       var hl = false;
       if (focus) { if (focus === e.a || focus === e.b) hl = true; else dim = true; }
       var cls = "rm-edge " + (e.type || "blood") + (dim ? " dim" : "") + (hl ? " hl" : "");
-      out.push('<line class="' + cls + '" x1="' + a.cx.toFixed(1) + '" y1="' + a.cy.toFixed(1) + '" x2="' + b.cx.toFixed(1) + '" y2="' + b.cy.toFixed(1) + '"><title>' + esc((a.node.name) + " — " + (e.label || "") + " — " + (b.node.name)) + '</title></line>');
-      var mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
+      var dx = b.cx - a.cx, dy = b.cy - a.cy;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = -dy / len, ny = dx / len;
+      var curve = 14;
+      var cxp = (a.cx + b.cx) / 2 + nx * curve;
+      var cyp = (a.cy + b.cy) / 2 + ny * curve;
+      out.push('<path class="' + cls + '" d="M' + a.cx.toFixed(1) + ',' + a.cy.toFixed(1) + ' Q' + cxp.toFixed(1) + ',' + cyp.toFixed(1) + ' ' + b.cx.toFixed(1) + ',' + b.cy.toFixed(1) + '"><title>' + esc((a.node.name) + " — " + (e.label || "") + " — " + (b.node.name)) + '</title></path>');
       var label = e.label || "";
       var lw = label.length * 9 + 6;
-      out.push('<rect class="rm-elabel-bg' + (dim ? " dim" : "") + '" x="' + (mx - lw / 2).toFixed(1) + '" y="' + (my - 7).toFixed(1) + '" width="' + lw + '" height="13" rx="3"/>');
-      out.push('<text class="rm-elabel' + (dim ? " dim" : "") + '" x="' + mx.toFixed(1) + '" y="' + (my + 3).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
+      out.push('<rect class="rm-elabel-bg' + (dim ? " dim" : "") + '" x="' + (cxp - lw / 2).toFixed(1) + '" y="' + (cyp - 7).toFixed(1) + '" width="' + lw + '" height="13" rx="3"/>');
+      out.push('<text class="rm-elabel' + (dim ? " dim" : "") + '" x="' + cxp.toFixed(1) + '" y="' + (cyp + 3).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
     });
     // nodes
     nodes.forEach(function (n) {
@@ -265,7 +284,8 @@
       out.push('<g class="' + cls + '"' + (n.charId ? ' data-action="focus-rel" data-id="' + esc(n.id) + '"' : '') + '>');
       out.push('<rect x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" width="' + nodeW + '" height="' + nodeH + '" rx="7"/>');
       out.push('<text x="' + p.cx.toFixed(1) + '" y="' + (p.cy + 4).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
-      out.push('<title>' + esc(rev ? n.name : "未出场") + '</title>');
+      var servs = (servantMap[n.id] || []).map(function (sid) { var sn = null; nodes.forEach(function (x) { if (x.id === sid) sn = x; }); return sn ? sn.name : sid; });
+      out.push('<title>' + esc((rev ? n.name : "未出场") + (servs.length ? "｜贴身仆从：" + servs.join("、") : "")) + '</title>');
       out.push("</g>");
     });
     out.push("</svg>");
