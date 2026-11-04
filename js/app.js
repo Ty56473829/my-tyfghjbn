@@ -37,6 +37,7 @@
     annotate: true,
     contrast: false,
     focusRel: "",
+    category: "all",
     group: "all",
     charQuery: "",
     query: ""
@@ -152,6 +153,7 @@
     DATA.garden = Array.isArray(window.HLM_GARDEN) ? window.HLM_GARDEN : [];
     DATA.contrast = window.HLM_CONTRAST || {};
     DATA.relgraph = window.HLM_RELGRAPH || null;
+    DATA.categories = Array.isArray(window.HLM_CATEGORIES) ? window.HLM_CATEGORIES : [];
     DATA.characters.sort(function (a, b) {
       var ca = a.firstAppearance && a.firstAppearance.chapter || 999;
       var cb = b.firstAppearance && b.firstAppearance.chapter || 999;
@@ -482,8 +484,18 @@
   }
 
   /* ---------------- 人物库 ---------------- */
+  function categoryByKey(key) {
+    var list = DATA.categories || [];
+    for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i];
+    return null;
+  }
+
   function charMatchesFilter(c) {
     if (state.group !== "all" && (!Array.isArray(c.groups) || c.groups.indexOf(state.group) < 0)) return false;
+    if (state.category && state.category !== "all") {
+      var cat = categoryByKey(state.category);
+      if (!cat || cat.members.indexOf(c.id) < 0) return false;
+    }
     var q = state.charQuery.trim().toLowerCase();
     if (!q) return true;
     var fields = [c.name].concat(Array.isArray(c.aliases) ? c.aliases : []);
@@ -518,22 +530,34 @@
     var revealed = DATA.characters.filter(function (c) { return S.isCharacterRevealed(c, state.readAt); });
     var unrevealed = DATA.characters.filter(function (c) { return !S.isCharacterRevealed(c, state.readAt); });
 
-    var groupChips = ['<button type="button" class="chip' + (state.group === "all" ? " is-active" : "") + '" data-action="set-group" data-group="all">全部<span class="chip-num">' + revealed.length + "</span></button>"];
-    (META.groups || []).forEach(function (g) {
-      var count = revealed.filter(function (c) { return Array.isArray(c.groups) && c.groups.indexOf(g.key) >= 0; }).length;
+    var catChips = ['<button type="button" class="chip' + (state.category === "all" ? " is-active" : "") + '" data-action="set-category" data-category="all">全部<span class="chip-num">' + revealed.length + "</span></button>"];
+    (DATA.categories || []).forEach(function (cat) {
+      var count = revealed.filter(function (c) { return cat.members.indexOf(c.id) >= 0; }).length;
       if (count <= 0) return;
-      groupChips.push('<button type="button" class="chip' + (state.group === g.key ? " is-active" : "") + '" data-action="set-group" data-group="' + esc(g.key) + '" title="' + esc(g.desc || "") + '">' + esc(g.short || g.label) + '<span class="chip-num">' + count + "</span></button>");
+      catChips.push('<button type="button" class="chip' + (state.category === cat.key ? " is-active" : "") + '" data-action="set-category" data-category="' + esc(cat.key) + '" title="' + esc(cat.desc || "") + '">' + esc(cat.label) + '<span class="chip-num">' + count + "</span></button>");
     });
 
     var newThis = revealed.filter(function (c) { return c.firstAppearance && c.firstAppearance.chapter === state.readAt; });
     var list = revealed.filter(charMatchesFilter);
-    var cards = list.map(charCard).join("");
+    var cards;
+    if (state.category === "servants") {
+      var scat = categoryByKey("servants");
+      var parts = [];
+      (scat.subGroups || []).forEach(function (sg) {
+        var ms = sg.members.map(function (id) { return charById[id]; }).filter(function (c) { return c && S.isCharacterRevealed(c, state.readAt); });
+        if (!ms.length) return;
+        parts.push('<div class="servant-group"><h4 class="servant-group-title">' + esc(sg.label) + '</h4><div class="char-grid">' + ms.map(charCard).join("") + "</div></div>");
+      });
+      cards = parts.join("");
+    } else {
+      cards = list.map(charCard).join("");
+    }
     if (!cards) cards = emptyState("没有符合条件的人物", "试试切换分组，或清空筛选词。");
 
     var out = [];
     out.push(pageHead("人物库", "共收录 " + DATA.characters.length + " 位人物：核心主角、金陵十二钗正册 / 副册 / 又副册（通行说法）与重要配角。默认只显示已出场人物及其已读内容。"));
     out.push('<div class="char-toolbar"><input type="search" class="char-filter" id="char-filter" placeholder="按姓名、别名筛选人物，如：黛玉 / 凤辣子" value="' + esc(state.charQuery) + '" aria-label="筛选人物"><span class="char-count">当前显示 ' + list.length + " / 已出场 " + revealed.length + " 位</span></div>");
-    out.push('<div class="chip-group" style="margin-bottom:1rem">' + groupChips.join("") + "</div>");
+    out.push('<div class="chip-group" style="margin-bottom:1rem">' + catChips.join("") + "</div>");
     if (newThis.length) {
       out.push('<div class="new-this-chapter">🆕 本回（第' + state.readAt + "回）新出场：" + newThis.map(function (c) { return '<button type="button" class="chip" data-action="open-char" data-id="' + esc(c.id) + '">' + esc(c.name) + "</button>"; }).join("") + "</div>");
     }
@@ -1196,6 +1220,9 @@
         scrollToView();
       } else if (action === "set-group") {
         state.group = dataset.group || "all";
+        render();
+      } else if (action === "set-category") {
+        state.category = dataset.category || "all";
         render();
       } else if (action === "set-search") {
         state.tab = "search";
