@@ -38,6 +38,7 @@
     contrast: false,
     focusRel: "",
     category: "all",
+    relView: "basic",
     group: "all",
     charQuery: "",
     query: ""
@@ -345,7 +346,7 @@
       markers.push({ mk: mk, word: w.word, meaning: w.meaning || "" });
     });
     markers.forEach(function (m) {
-      var span = '<span class="hw-inline" data-hw="' + esc(m.word) + '" title="' + esc(m.meaning) + '">' + esc(m.word) + "</span>";
+      var span = '<span class="hw-inline" data-hw="' + esc(m.word) + '" data-meaning="' + esc(m.meaning) + '" title="' + esc(m.meaning) + '">' + esc(m.word) + "</span>";
       s = s.split(m.mk).join(span);
     });
     return s;
@@ -353,6 +354,28 @@
 
   function guideText(text, words) {
     return state.annotate ? annotateText(text, words) : esc(text);
+  }
+
+  function closeWordPopup() {
+    var p = document.getElementById("word-popup");
+    if (p && p.parentNode) p.parentNode.removeChild(p);
+  }
+
+  function showWordPopup(word, meaning, entry) {
+    closeWordPopup();
+    var cat = entry ? (HARDWORD_CATS[entry.category] || { icon: "", label: "" }) : { icon: "", label: "" };
+    var pop = document.createElement("div");
+    pop.className = "word-popup";
+    pop.id = "word-popup";
+    var html = '<button type="button" class="word-popup-close" aria-label="关闭">×</button>';
+    html += '<div class="word-popup-word">' + esc(word) + '</div>';
+    if (cat.label) html += '<div class="word-popup-cat">' + cat.icon + " " + esc(cat.label) + "</div>";
+    if (entry && entry.example) html += '<div class="word-popup-example">「' + esc(entry.example) + "」</div>";
+    html += '<div class="word-popup-meaning">' + esc(meaning) + "</div>";
+    pop.innerHTML = html;
+    document.body.appendChild(pop);
+    var closeBtn = pop.querySelector(".word-popup-close");
+    if (closeBtn) closeBtn.addEventListener("click", function (e) { e.stopPropagation(); closeWordPopup(); });
   }
 
   function renderHardWordItem(w, chapter) {
@@ -610,7 +633,7 @@
       }).join("") + "</div>");
     }
     if (hidden && !full) {
-      out.push('<div class="fold"><p class="fold-title">🔒 后续内容已折叠</p><p>此人后续还有重要经历（发生在第 ' + readAt + " 回之后），是否展开查看完整人物线？</p>" + '<div class="fold-actions"><button type="button" class="btn btn-sm" data-action="expand-full">展开完整人物线</button></div></div>');
+      out.push('<div class="fold"><p class="fold-title">🔒 后续内容已折叠（防剧透）</p><p>此人后续还有重要经历（发生在第 ' + readAt + ' 回之后）。可点击下方按钮查看完整人物命运，<strong>含剧透</strong>。</p>' + '<div class="fold-actions"><button type="button" class="btn btn-sm" data-action="expand-full">查看完整人物命运（含剧透）</button></div></div>');
     } else if (hidden && full) {
       out.push('<div class="fold is-open"><div class="fold-actions"><button type="button" class="btn btn-ghost btn-sm" data-action="collapse-full">收起完整人物线</button></div></div>');
     }
@@ -673,6 +696,7 @@
     out.push('<div class="section-head"><h3 class="section-title">④ 脂批选录 · 版本差异</h3>' + typeTag("analysis") + "</div>");
     if (lit.zhipi) out.push('<div class="lit-item"><span class="lit-label">脂批</span><p>' + esc(lit.zhipi) + "</p></div>");
     if (lit.versionDiff) out.push('<div class="lit-item"><span class="lit-label">版本差异</span><p>' + esc(lit.versionDiff) + "</p></div>");
+    if (lit.critics) out.push('<div class="lit-item"><span class="lit-label">红学家点评</span><p>' + esc(lit.critics) + "</p></div>");
     out.push("</section>");
     return out.join("");
   }
@@ -759,6 +783,11 @@
     }
     var R = window.HLM_RELATIONS;
     var G = DATA.relgraph;
+    out.push('<div class="rel-view-toggle">');
+    [["basic", "基础家谱"], ["focus", "聚焦"], ["full", "完整全网"]].forEach(function (v) {
+      out.push('<button type="button" class="settings-btn' + (state.relView === v[0] ? " is-active" : "") + '" data-action="set-rel-view" data-view="' + v[0] + '">' + v[1] + "</button>");
+    });
+    out.push("</div>");
     out.push('<div class="relations-toolbar">');
     out.push('<span class="relations-note">读到第 ' + state.readAt + ' 回：尚未出场的人物与关系会淡化（「□□□」）；点人物可聚焦。</span>');
     out.push('<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-relations-expand">' + (state.relationsExpand ? "收起（恢复防剧透）" : "展开全部（含未出场人物）") + "</button>");
@@ -770,7 +799,7 @@
     out.push('<span class="rel-legend-item"><span class="rel-line qin"></span>姻亲表亲</span>');
     out.push('<span class="rel-legend-item"><span class="rel-line servant"></span>主仆</span>');
     out.push("</div>");
-    if (R) out.push('<div class="relmap-wrap">' + R.renderRelationMap(G, { readAt: state.readAt, expand: state.relationsExpand, focus: state.focusRel }) + '</div>');
+    if (R) out.push('<div class="relmap-wrap">' + R.renderRelationMap(G, { readAt: state.readAt, expand: state.relationsExpand, focus: state.focusRel, view: state.relView }) + '</div>');
     else out.push(emptyState("渲染模块未加载", "js/relations.js 未正确加载。"));
     if (state.focusRel && R) {
       var node = null;
@@ -781,10 +810,16 @@
   }
 
   function renderFocusInfo(G, node) {
-    var typeLabel = { blood: "血缘", marriage: "婚姻", qin: "姻亲", servant: "主仆" };
-    var rels = (G.edges || []).filter(function (e) { return e.a === node.id || e.b === node.id; });
+    var typeLabel = { blood: "血缘", marriage: "婚姻", qin: "姻亲" };
+    var rels = (G.edges || []).filter(function (e) { return (e.a === node.id || e.b === node.id) && e.type !== "servant"; });
+    var servs = (G.edges || []).filter(function (e) { return e.type === "servant" && (e.a === node.id || e.b === node.id); }).map(function (e) {
+      var sid = e.a === node.id ? e.b : e.a; var sn = null;
+      (G.nodes || []).forEach(function (n) { if (n.id === sid) sn = n; });
+      return sn ? sn.name : "";
+    }).filter(Boolean);
     var out = [];
-    out.push('<div class="focus-info"><h3 class="focus-title">' + esc(node.name) + " 的关系（" + rels.length + " 条）</h3><ul class='focus-rel-list'>");
+    out.push('<div class="focus-info"><h3 class="focus-title">' + esc(node.name) + " 的关系（" + rels.length + " 条）</h3>");
+    out.push('<ul class="focus-rel-list">');
     rels.forEach(function (e) {
       var otherId = e.a === node.id ? e.b : e.a;
       var other = null;
@@ -792,7 +827,10 @@
       if (!other) return;
       out.push('<li><span class="focus-rel-type">' + (typeLabel[e.type] || "") + "</span>与 <strong>" + esc(other.name) + "</strong>：" + esc(e.label || "") + "</li>");
     });
-    out.push("</ul></div>");
+    out.push("</ul>");
+    if (servs.length) out.push('<p class="focus-servants">👤 贴身仆从：' + esc(servs.join("、")) + "</p>");
+    if (node.charId) out.push('<button type="button" class="btn btn-sm" data-action="open-char" data-id="' + esc(node.charId) + '">打开人物卡</button>');
+    out.push("</div>");
     return out.join("");
   }
 
@@ -1233,6 +1271,10 @@
       } else if (action === "toggle-relations-expand") {
         state.relationsExpand = !state.relationsExpand;
         render();
+      } else if (action === "set-rel-view") {
+        state.relView = dataset.view === "focus" || dataset.view === "full" ? dataset.view : "basic";
+        if (state.relView === "basic") state.focusRel = "";
+        render();
       } else if (action === "focus-rel") {
         var fid = dataset.id || target.getAttribute("data-id") || "";
         state.focusRel = (state.focusRel === fid) ? "" : fid;
@@ -1279,10 +1321,16 @@
 
     document.addEventListener("click", function (ev) {
       var inline = ev.target && ev.target.closest ? ev.target.closest(".hw-inline") : null;
-      if (!inline) return;
-      var w = inline.getAttribute("data-hw") || "";
-      var entry = document.querySelector('[data-hw-entry="' + w + '"]');
-      if (entry && entry.scrollIntoView) entry.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (inline) {
+        var w = inline.getAttribute("data-hw") || "";
+        var meaning = inline.getAttribute("data-meaning") || "";
+        var words = hardwordsForChapter(state.chapter);
+        var entry = null;
+        words.forEach(function (x) { if (x.word === w) entry = x; });
+        showWordPopup(w, meaning, entry);
+        return;
+      }
+      if (!(ev.target && ev.target.closest && ev.target.closest(".word-popup"))) closeWordPopup();
     });
 
     document.addEventListener("input", function (ev) {
