@@ -320,7 +320,8 @@ test("人物卡折叠提示文案与后续经历过滤", () => {
   clickAction("open-char", { id: "lin-daiyu" });
   const h = html();
   assertIncludes(h, "后续内容已折叠", "人物卡");
-  assertIncludes(h, "此人后续还有重要经历（发生在第 5 回之后），是否展开查看完整人物线？", "折叠提示");
+  assertIncludes(h, "此人后续还有重要经历（发生在第 5 回之后）", "折叠提示");
+  assertIncludes(h, "查看完整人物命运", "查看完整命运按钮");
   assertIncludes(h, "母丧坐馆", "已读经历应显示");
   assertNotIncludes(h, "葬花", "未读经历不应显示");
   assertNotIncludes(h, "泪尽而逝", "结局未读不应显示");
