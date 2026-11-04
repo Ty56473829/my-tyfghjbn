@@ -155,10 +155,64 @@
     return out.join("");
   }
 
+
+  /* ---------- 关系速查表：从谱系树反推每人的 父/母/配偶/子女/兄弟姊妹 ---------- */
+  function personName(p, opts) {
+    if (!p) return '<span class="rel-none">—</span>';
+    if (!personRevealed(p, opts)) return '<span class="rel-hidden">□□□</span>';
+    if (personHasCard(p, opts)) return '<button type="button" class="rel-name-btn" data-action="open-char" data-id="' + esc(p.charId) + '">' + esc(p.name) + "</button>";
+    return '<span class="rel-name-plain">' + esc(p.name) + "</span>";
+  }
+
+  function namesList(arr, opts) {
+    if (!arr || !arr.length) return '<span class="rel-none">—</span>';
+    return arr.map(function (p) { return personName(p, opts); }).join("、");
+  }
+
+  function buildRelationIndex(family) {
+    var index = [];
+    var seen = Object.create(null);
+    function add(e) {
+      if (!e.person || !e.person.name || seen[e.person.name]) return;
+      seen[e.person.name] = true;
+      index.push(e);
+    }
+    function walk(node, parentUnit) {
+      if (!node || !node.person) return;
+      var children = (node.children || []).map(function (ch) { return ch.person; }).filter(Boolean);
+      var sibs = parentUnit ? (parentUnit.children || []).map(function (ch) { return ch.person; }).filter(function (x) { return x && x.name !== node.person.name; }) : [];
+      add({ person: node.person, father: parentUnit ? parentUnit.person : null, mother: parentUnit ? parentUnit.spouse : null, spouse: node.spouse || null, children: children, siblings: sibs });
+      if (node.spouse) {
+        add({ person: node.spouse, father: null, mother: null, spouse: node.person, children: children, siblings: [] });
+      }
+      (node.children || []).forEach(function (ch) { walk(ch, node); });
+    }
+    (family.houses || []).forEach(function (h) { walk(h.node, null); });
+    return index;
+  }
+
+  function renderRelationTable(family, opts) {
+    opts = opts || {};
+    opts.readAt = opts.readAt || 1;
+    var index = buildRelationIndex(family);
+    var out = [];
+    out.push('<div class="rel-table-wrap">');
+    out.push('<table class="rel-table"><thead><tr><th>人物</th><th>父</th><th>母</th><th>配偶</th><th>子女</th><th>兄弟姊妹</th></tr></thead><tbody>');
+    index.forEach(function (e) {
+      out.push("<tr><td>" + personName(e.person, opts) + "</td><td>" + personName(e.father, opts) + "</td><td>" + personName(e.mother, opts) + "</td><td>" + personName(e.spouse, opts) + "</td><td>" + namesList(e.children, opts) + "</td><td>" + namesList(e.siblings, opts) + "</td></tr>");
+    });
+    out.push("</tbody></table>");
+    out.push('<p class="small muted rel-table-note">说明：按谱系树反推；「母」多为谱系嫡母/继母，不等于生母；「□□□」为尚未读到出场回目的人物。</p>');
+    out.push("</div>");
+    return out.join("");
+  }
+
   return {
     esc: esc,
     renderFamilyTree: renderFamilyTree,
     renderRelationGraph: renderRelationGraph,
+    buildRelationIndex: buildRelationIndex,
+    renderRelationTable: renderRelationTable,
     personRevealed: personRevealed
   };
 });
