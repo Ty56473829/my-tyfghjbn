@@ -1,5 +1,5 @@
 /* 《AI说红楼》红学分析与时代背景（按回目精准推送版）。
- * 字段：id/title/type/anchor(与本回的关系)/edition(版本标注)/spoiler(剧透级别 none|moderate|full)/relatedChapters/relatedCharacters/source/detail(可选)
+ * 字段：id/title/type/anchor/edition/spoiler/relatedChapters/relatedCharacters/source/detail
  */
 window.HLM_ANALYSES = [
   {
@@ -322,6 +322,78 @@ window.HLM_ANALYSES = [
       "si-qi"
     ],
     "source": "红学解读，非正文"
+  },
+  {
+    "id": "an-dengmi",
+    "title": "灯谜的谶语性",
+    "type": "analysis",
+    "text": "第22回贾府元宵制灯谜，宝玉、黛玉、宝钗、探春等所制谜语，多暗含各自命运，如探春之谜暗示远嫁、宝钗之谜暗示独守。红学多认为这是作者借灯谜再布一层谶语。",
+    "anchor": "帮助理解第22回众人所制灯谜背后的命运暗示。",
+    "edition": "现代红学",
+    "spoiler": "moderate",
+    "relatedChapters": [
+      22
+    ],
+    "relatedCharacters": [
+      "jia-baoyu",
+      "lin-daiyu",
+      "xue-baochai",
+      "jia-tanchun"
+    ],
+    "source": "红学解读，非正文"
+  },
+  {
+    "id": "an-wumeiyin",
+    "title": "五美吟的身世寄托",
+    "type": "analysis",
+    "text": "第64回黛玉作《五美吟》，咏西施、虞姬、明妃、绿珠、红拂五位古代女子。她借古人咏怀，写红颜薄命、身不由己之慨，红学多视为黛玉自我命运的投影。",
+    "anchor": "帮助理解第64回黛玉《五美吟》借古人抒怀的用意。",
+    "edition": "现代红学",
+    "spoiler": "moderate",
+    "relatedChapters": [
+      64
+    ],
+    "relatedCharacters": [
+      "lin-daiyu"
+    ],
+    "source": "红学解读，非正文"
+  },
+  {
+    "id": "an-liuxu",
+    "title": "柳絮词的群像",
+    "type": "analysis",
+    "text": "第70回众人填柳絮词，宝钗《临江仙》翻出「好风凭借力，送我上青云」的昂扬，黛玉《唐多令》写「飘泊亦如人命薄」的悲凉，湘云、探春等各有寄托。同一题而各见性情与命运，是全书最集中的一次词作群像。",
+    "anchor": "帮助理解第70回众人柳絮词里各人不同的寄托。",
+    "edition": "现代红学",
+    "spoiler": "moderate",
+    "relatedChapters": [
+      70
+    ],
+    "relatedCharacters": [
+      "lin-daiyu",
+      "xue-baochai",
+      "shi-xiangyun",
+      "jia-tanchun"
+    ],
+    "source": "红学解读，非正文"
+  },
+  {
+    "id": "an-fengao",
+    "title": "黛玉焚稿的诗谶应验",
+    "type": "analysis",
+    "text": "第98回黛玉临终前将诗稿投入火中焚毁，「质本洁来还洁去」的洁净与「花落人亡两不知」的预感在此应验。红学多把焚稿看作黛玉一生诗才与痴情的最后收束，也是前文《葬花吟》诗谶的兑现。",
+    "anchor": "帮助理解第98回黛玉焚稿与前文诗谶的呼应。",
+    "edition": "现代红学",
+    "spoiler": "full",
+    "detail": "《葬花吟》「一朝春尽红颜老，花落人亡两不知」在此回得到照应；脂本虽止于80回，但前80回的判词、诗谶早已预示黛玉泪尽而逝。焚稿一节，程高本写来凄厉，红学多认为符合前文伏笔。",
+    "relatedChapters": [
+      27,
+      98
+    ],
+    "relatedCharacters": [
+      "lin-daiyu"
+    ],
+    "source": "红学解读，非正文"
   }
 ];
 window.HLM_CONTEXTS = [
@@ -631,9 +703,46 @@ window.HLM_CONTEXTS = [
       "wang-furen"
     ],
     "source": "清代奴仆制度常识，非小说情节"
+  },
+  {
+    "id": "ctx-longcuian-tea",
+    "title": "栊翠庵品茶与茶具",
+    "type": "context",
+    "text": "第41回妙玉在栊翠庵奉茶，用成窑五彩小盖钟给贾母、绿玉斗给宝玉，又因刘姥姥用过而弃杯。清代富贵人家讲究茶器、水质、火候，妙玉的挑剔见其「过洁」，也见茶文化之盛。",
+    "anchor": "帮助理解第41回妙玉奉茶时茶具、用水背后的讲究。",
+    "edition": "清代史料",
+    "spoiler": "none",
+    "detail": "成窑是明成化官窑，五彩瓷器极名贵；「绿玉斗」为玉制茶器；妙玉用「旧年蠲的雨水」和「梅花上的雪」烹茶，见清代文人对烹茶用水的讲究。",
+    "relatedChapters": [
+      41
+    ],
+    "relatedCharacters": [
+      "miao-yu",
+      "jia-mu",
+      "jia-baoyu",
+      "liu-laolao"
+    ],
+    "source": "清代茶文化与器物常识，非小说情节"
+  },
+  {
+    "id": "ctx-jiamu-sang",
+    "title": "贾母丧与家族败落",
+    "type": "context",
+    "text": "第110回贾母寿终，丧事虽仍按礼操办，却已见家势凋零、银钱拮据，与第13回秦可卿丧事的铺张形成鲜明对照。婚丧排场是清代家族体面的标尺，贾母之丧正写尽贾府由盛而衰。",
+    "anchor": "帮助理解第110回贾母丧事的排场与贾府败落的对照。",
+    "edition": "清代史料",
+    "spoiler": "none",
+    "relatedChapters": [
+      110
+    ],
+    "relatedCharacters": [
+      "jia-mu",
+      "jia-zheng",
+      "wang-xifeng"
+    ],
+    "source": "清代丧葬礼俗常识，非小说情节"
   }
 ];
-
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { analyses: window.HLM_ANALYSES, contexts: window.HLM_CONTEXTS };
 }
