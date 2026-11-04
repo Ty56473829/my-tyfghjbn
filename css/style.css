@@ -778,4 +778,21 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
 .contrast-toggle { margin-top: .55rem; }
 @media (max-width: 700px) { .contrast-cols { grid-template-columns: 1fr; } }
 
+/* ---------- 人物关系速查表 + 谱系图说明 ---------- */
+.rel-section-title { font-size: 1.1rem; letter-spacing: .08em; color: var(--red-dark); margin: 1.1rem 0 .5rem; }
+.rel-quick, .rel-tree { margin-bottom: .5rem; }
+.rel-table-wrap { overflow-x: auto; }
+.rel-table { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 640px; }
+.rel-table th, .rel-table td { border: 1px solid var(--line-soft); padding: .42rem .6rem; text-align: left; vertical-align: top; line-height: 1.6; }
+.rel-table thead th { background: var(--paper-2); color: var(--ink-soft); font-family: var(--sans); font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.rel-table tbody tr:nth-child(even) { background: var(--paper-2); }
+.rel-table tbody td:first-child { font-weight: 700; color: var(--ink); white-space: nowrap; }
+.rel-name-btn { font: inherit; color: var(--red-dark); background: none; border: none; border-bottom: 1px dashed var(--line); padding: 0; cursor: pointer; }
+.rel-name-btn:hover { color: var(--red); border-bottom-color: var(--red); }
+.rel-name-plain { color: var(--ink); }
+.rel-hidden { color: var(--ink-faint); letter-spacing: .1em; }
+.rel-none { color: var(--ink-faint); }
+.rel-table-note { margin: .45rem 0 0; }
+.ft-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--sans); font-size: .74rem; color: var(--ink-soft); background: var(--paper-2); border: 1px dashed var(--line); border-radius: var(--radius-sm); padding: .4rem .7rem; margin-bottom: .7rem; }
+.ft-legend-item { white-space: nowrap; }
 
