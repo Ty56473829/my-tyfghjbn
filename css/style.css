@@ -844,6 +844,12 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
 .word-popup-cat { font-family: var(--sans); font-size: .7rem; color: var(--ink-soft); margin-bottom: .4rem; }
 .word-popup-example { font-size: .82rem; color: var(--ink-faint); margin-bottom: .35rem; }
 .word-popup-meaning { color: var(--ink); text-align: justify; }
+
+/* ---------- 选中词句查询 / 文本辨析 ---------- */
+.sel-lookup { position: fixed; z-index: 99; transform: translateY(0); background: var(--ink); color: var(--white); border: none; border-radius: 999px; font-family: var(--sans); font-size: .8rem; padding: .45rem .9rem; box-shadow: var(--shadow); cursor: pointer; }
+.sel-lookup:hover { background: var(--red-dark); }
+.word-popup-variant { margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed var(--line); font-size: .84rem; color: var(--ink-soft); line-height: 1.7; }
+.word-popup-variant p { margin: .35rem 0 0; text-align: justify; }
 .focus-info { margin-top: 1rem; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--paper-2); padding: .8rem 1rem; }
 .focus-title { font-size: 1.05rem; color: var(--red-dark); margin-bottom: .5rem; }
 .focus-rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .9rem; }
