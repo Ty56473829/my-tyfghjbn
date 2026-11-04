@@ -15,7 +15,7 @@
   var FONT_KEY = "hlm.font";
   var ONBOARD_KEY = "hlm.onboarded";
 
-  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, compare: [], garden: [], contrast: {}, meta: META };
+  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, compare: [], garden: [], contrast: {}, relgraph: null, meta: META };
   var charById = {};
   var charByName = {};
   var chapByN = {};
@@ -36,6 +36,7 @@
     spoilerMode: "none",
     annotate: true,
     contrast: false,
+    focusRel: "",
     group: "all",
     charQuery: "",
     query: ""
@@ -150,6 +151,7 @@
     DATA.compare = Array.isArray(window.HLM_COMPARE) ? window.HLM_COMPARE : [];
     DATA.garden = Array.isArray(window.HLM_GARDEN) ? window.HLM_GARDEN : [];
     DATA.contrast = window.HLM_CONTRAST || {};
+    DATA.relgraph = window.HLM_RELGRAPH || null;
     DATA.characters.sort(function (a, b) {
       var ca = a.firstAppearance && a.firstAppearance.chapter || 999;
       var cb = b.firstAppearance && b.firstAppearance.chapter || 999;
@@ -488,12 +490,22 @@
     return fields.join(" ").toLowerCase().indexOf(q) >= 0;
   }
 
+  function charStatus(c, readAt) {
+    if (!S.isCharacterRevealed(c, readAt)) return { key: "future", label: "未出场" };
+    var fate = c.fate;
+    if (fate && fate.chapter && fate.chapter <= readAt && /亡|死|殁|自尽|自刎|出家|殉|薨|夭/.test(fate.text || "")) {
+      return { key: "gone", label: "已退场" };
+    }
+    return { key: "now", label: "已出场" };
+  }
+
   function charCard(c) {
     var revealed = S.isCharacterRevealed(c, state.readAt);
     var info = S.hiddenExperienceInfo(c, state.readAt);
     var aliasText = (c.aliases || []).slice(0, 3).join(" · ");
-    return '<button type="button" class="char-card" data-action="open-char" data-id="' + esc(c.id) + '">' +
-      '<span class="char-card-top"><span class="char-card-name">' + esc(c.name) + "</span>" +
+    var st = charStatus(c, state.readAt);
+    return '<button type="button" class="char-card is-' + st.key + '" data-action="open-char" data-id="' + esc(c.id) + '">' +
+      '<span class="char-card-top"><span class="char-card-name">' + esc(c.name) + '</span><span class="char-status is-' + st.key + '">' + st.label + "</span>" +
       (aliasText ? '<span class="char-card-alias">' + esc(aliasText) + "</span>" : "") + "</span>" +
       '<span class="char-card-identity">' + esc(c.identity || "") + "</span>" +
       '<span class="chip-group">' + groupTags(c.groups) + "</span>" +
@@ -513,6 +525,7 @@
       groupChips.push('<button type="button" class="chip' + (state.group === g.key ? " is-active" : "") + '" data-action="set-group" data-group="' + esc(g.key) + '" title="' + esc(g.desc || "") + '">' + esc(g.short || g.label) + '<span class="chip-num">' + count + "</span></button>");
     });
 
+    var newThis = revealed.filter(function (c) { return c.firstAppearance && c.firstAppearance.chapter === state.readAt; });
     var list = revealed.filter(charMatchesFilter);
     var cards = list.map(charCard).join("");
     if (!cards) cards = emptyState("没有符合条件的人物", "试试切换分组，或清空筛选词。");
@@ -521,6 +534,9 @@
     out.push(pageHead("人物库", "共收录 " + DATA.characters.length + " 位人物：核心主角、金陵十二钗正册 / 副册 / 又副册（通行说法）与重要配角。默认只显示已出场人物及其已读内容。"));
     out.push('<div class="char-toolbar"><input type="search" class="char-filter" id="char-filter" placeholder="按姓名、别名筛选人物，如：黛玉 / 凤辣子" value="' + esc(state.charQuery) + '" aria-label="筛选人物"><span class="char-count">当前显示 ' + list.length + " / 已出场 " + revealed.length + " 位</span></div>");
     out.push('<div class="chip-group" style="margin-bottom:1rem">' + groupChips.join("") + "</div>");
+    if (newThis.length) {
+      out.push('<div class="new-this-chapter">🆕 本回（第' + state.readAt + "回）新出场：" + newThis.map(function (c) { return '<button type="button" class="chip" data-action="open-char" data-id="' + esc(c.id) + '">' + esc(c.name) + "</button>"; }).join("") + "</div>");
+    }
     out.push('<div class="char-grid" id="char-grid">' + cards + "</div>");
 
     if (unrevealed.length) {
@@ -538,6 +554,18 @@
     return out.join("");
   }
 
+  function charTimelineHtml(c) {
+    var items = S.visibleExperiences(c, state.readAt);
+    if (!items.length) return "";
+    var out = [];
+    out.push('<div class="char-timeline"><div class="ctl-axis">');
+    items.forEach(function (e) {
+      out.push('<button type="button" class="ctl-node" data-action="open-chapter" data-n="' + e.chapter + '"><span class="ctl-dot"></span><span class="ctl-ch">第' + e.chapter + '回</span><span class="ctl-title">' + esc(e.title) + "</span></button>");
+    });
+    out.push("</div></div>");
+    return out.join("");
+  }
+
   function charExperiencesHtml(c) {
     var readAt = state.readAt;
     var full = state.expand;
@@ -545,7 +573,7 @@
     var hidden = S.hiddenExperienceInfo(c, readAt);
     var out = [];
     out.push('<section class="detail-section">');
-    out.push('<div class="section-head"><h3 class="section-title">重要经历</h3>' + typeTag("novel") + '<span class="detail-count">已读 ' + visible.length + " 段" + (full ? " · 完整人物线" : "") + "</span></div>");
+    out.push('<div class="section-head"><h3 class="section-title">' + (full ? "② 完整小传 · 全部经历" : "① 本回视角 · 已读经历") + '</h3>' + typeTag("novel") + '<span class="detail-count">已读 ' + visible.length + " 段" + (full ? " · 完整人物线" : "") + "</span></div>");
     if (full) {
       out.push('<div class="full-line-banner"><span class="spoiler-flag">⚠️ 含剧透</span>完整人物线：以下内容包含第 ' + readAt + " 回之后的经历，已用「剧透」标出。</div>");
     }
@@ -613,6 +641,18 @@
     return out.join("");
   }
 
+  function charLiteraryHtml(c) {
+    var lit = (window.HLM_LITERARY || {})[c.id];
+    if (!lit || (!lit.zhipi && !lit.versionDiff)) return "";
+    var out = [];
+    out.push('<section class="detail-section">');
+    out.push('<div class="section-head"><h3 class="section-title">④ 脂批选录 · 版本差异</h3>' + typeTag("analysis") + "</div>");
+    if (lit.zhipi) out.push('<div class="lit-item"><span class="lit-label">脂批</span><p>' + esc(lit.zhipi) + "</p></div>");
+    if (lit.versionDiff) out.push('<div class="lit-item"><span class="lit-label">版本差异</span><p>' + esc(lit.versionDiff) + "</p></div>");
+    out.push("</section>");
+    return out.join("");
+  }
+
   function charNotesHtml(c) {
     var analyses = Array.isArray(c.analyses) ? c.analyses : [];
     var contexts = Array.isArray(c.contexts) ? c.contexts : [];
@@ -622,7 +662,7 @@
     out.push('<section class="detail-section">');
     out.push('<div class="section-head"><h3 class="section-title">作品分析与时代背景</h3></div>');
     out.push('<div class="collapsible" data-open="' + (open ? "true" : "false") + '">');
-    out.push('<button type="button" class="collapsible-head" data-action="toggle-analysis" aria-expanded="' + (open ? "true" : "false") + '">' + (open ? "▾ " : "▸ ") + "红学解读与史实背景（后人观点 / 史实背景，可能提及全书内容，默认可折叠）</button>");
+    out.push('<button type="button" class="collapsible-head" data-action="toggle-analysis" aria-expanded="' + (open ? "true" : "false") + '">' + (open ? "▾ " : "▸ ") + "③ 红学评价（脂批 / 后人观点 / 史实背景，可能提及全书，默认可折叠）</button>");
     out.push('<div class="collapsible-body">');
     analyses.forEach(function (a) {
       out.push('<div class="annotation-card is-analysis"><h4>' + typeTag("analysis") + esc(a.title) + '</h4><p>' + esc(a.text) + '</p><p class="small muted">' + esc("来源：红学常见解读，非正文") + "</p></div>");
@@ -651,8 +691,10 @@
     }
 
     out.push('<article class="char-detail">');
+    var st = charStatus(c, state.readAt);
     out.push('<div class="detail-head">');
-    out.push('<div class="detail-name-row"><h3 class="detail-name">' + esc(c.name) + "</h3>" + groupTags(c.groups) + "</div>");
+    out.push('<div class="detail-name-row"><h3 class="detail-name">' + esc(c.name) + '</h3><span class="char-status is-' + st.key + '">' + st.label + "</span>" + groupTags(c.groups) + "</div>");
+    out.push('<div class="detail-actions"><button type="button" class="btn btn-ghost btn-sm" data-action="jump-relmap" data-id="' + esc(c.id) + '">🕸️ 在关系图中查看</button></div>');
     if (c.aliasDetail) out.push('<p class="detail-identity">' + esc(c.aliasDetail) + "</p>");
     out.push('<div class="alias-list">' + (c.aliases || []).map(function (a) { return '<span class="alias-tag">' + esc(a) + "</span>"; }).join("") + "</div>");
     out.push('<p class="detail-identity">' + esc(c.identity || "") + "</p>");
@@ -664,6 +706,8 @@
     out.push('<div class="fact"><span class="fact-label">人物关系</span><span class="fact-value">已读 ' + S.visibleRelationships(c, state.readAt).length + " 段</span></div>");
     out.push("</div>");
 
+    out.push(charTimelineHtml(c));
+
     if (state.expand) {
       out.push('<div class="detail-section"><div class="full-line-banner"><span class="spoiler-flag">⚠️ 完整人物线</span>你已主动展开完整人物线：以下所有内容（经历、关系、结局）均含第 ' + state.readAt + " 回之后的剧透，已逐条标出。</div></div>");
     }
@@ -671,6 +715,7 @@
     out.push(charExperiencesHtml(c));
     out.push(charRelationshipsHtml(c));
     out.push(charFateHtml(c));
+    out.push(charLiteraryHtml(c));
     out.push(charNotesHtml(c));
     out.push("</article>");
     return out.join("");
@@ -683,25 +728,47 @@
   /* ---------------- 关系图 ---------------- */
   function renderRelations() {
     var out = [];
-    out.push(pageHead("关系图", "贾府宁荣二府的谱系与人物关系：先看「人物关系速查表」直接查每人的父 / 母 / 配偶 / 子女 / 兄弟姊妹，再看谱系图理整体结构。"));
-    if (!DATA.family) {
-      out.push(emptyState("谱系数据尚未就绪", "data/family.js 未加载或为空。"));
+    out.push(pageHead("关系图", "贾府与史、王、林、薛四大家族的人物关系图：连线的颜色与线型代表关系类型，点击人物可聚焦查看其全部牵绊。"));
+    if (!DATA.relgraph) {
+      out.push(emptyState("关系数据尚未就绪", "data/relgraph.js 未加载或为空。"));
       return out.join("");
     }
     var R = window.HLM_RELATIONS;
+    var G = DATA.relgraph;
     out.push('<div class="relations-toolbar">');
-    out.push('<span class="relations-note">「□□□」表示该人物在你读到的第 ' + state.readAt + " 回之前尚未出场；点击人物姓名可打开其人物卡。");
-    out.push('<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-relations-expand">' + (state.relationsExpand ? "收起（恢复防剧透）" : "展开全部（含未出场人物，可能剧透）") + "</button>");
+    out.push('<span class="relations-note">读到第 ' + state.readAt + ' 回：尚未出场的人物与关系会淡化（「□□□」）；点人物可聚焦。</span>');
+    out.push('<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-relations-expand">' + (state.relationsExpand ? "收起（恢复防剧透）" : "展开全部（含未出场人物）") + "</button>");
+    if (state.focusRel) out.push('<button type="button" class="btn btn-ghost btn-sm" data-action="clear-focus-rel">清除聚焦</button>');
     out.push("</div>");
-    // 1) 关系速查表（直接回答“是兄弟还是父子”）
-    out.push('<section class="rel-quick"><h3 class="rel-section-title">人物关系速查表</h3>');
-    out.push(R ? R.renderRelationTable(DATA.family, { readAt: state.readAt, expand: state.relationsExpand, charById: charById }) : "");
-    out.push("</section>");
-    // 2) 谱系图
-    out.push('<section class="rel-tree"><h3 class="rel-section-title">贾府谱系图</h3>');
-    out.push('<div class="ft-legend"><span class="ft-legend-item">↓ 竖线向下 = 父子 / 母女</span><span class="ft-legend-item">⚭ = 夫妻</span><span class="ft-legend-item">同一层并列 = 兄弟姊妹</span></div>');
-    out.push(R ? R.renderFamilyTree(DATA.family, { readAt: state.readAt, expand: state.relationsExpand, charById: charById }) : emptyState("渲染模块未加载", "js/relations.js 未正确加载。"));
-    out.push("</section>");
+    out.push('<div class="rel-legend">');
+    out.push('<span class="rel-legend-item"><span class="rel-line blood"></span>血缘（父子 / 母女）</span>');
+    out.push('<span class="rel-legend-item"><span class="rel-line marriage"></span>婚姻（夫妻）</span>');
+    out.push('<span class="rel-legend-item"><span class="rel-line qin"></span>姻亲表亲</span>');
+    out.push('<span class="rel-legend-item"><span class="rel-line servant"></span>主仆</span>');
+    out.push("</div>");
+    if (R) out.push('<div class="relmap-wrap">' + R.renderRelationMap(G, { readAt: state.readAt, expand: state.relationsExpand, focus: state.focusRel }) + '</div>');
+    else out.push(emptyState("渲染模块未加载", "js/relations.js 未正确加载。"));
+    if (state.focusRel && R) {
+      var node = null;
+      (G.nodes || []).forEach(function (n) { if (n.id === state.focusRel) node = n; });
+      if (node) out.push(renderFocusInfo(G, node));
+    }
+    return out.join("");
+  }
+
+  function renderFocusInfo(G, node) {
+    var typeLabel = { blood: "血缘", marriage: "婚姻", qin: "姻亲", servant: "主仆" };
+    var rels = (G.edges || []).filter(function (e) { return e.a === node.id || e.b === node.id; });
+    var out = [];
+    out.push('<div class="focus-info"><h3 class="focus-title">' + esc(node.name) + " 的关系（" + rels.length + " 条）</h3><ul class='focus-rel-list'>");
+    rels.forEach(function (e) {
+      var otherId = e.a === node.id ? e.b : e.a;
+      var other = null;
+      (G.nodes || []).forEach(function (n) { if (n.id === otherId) other = n; });
+      if (!other) return;
+      out.push('<li><span class="focus-rel-type">' + (typeLabel[e.type] || "") + "</span>与 <strong>" + esc(other.name) + "</strong>：" + esc(e.label || "") + "</li>");
+    });
+    out.push("</ul></div>");
     return out.join("");
   }
 
@@ -1070,7 +1137,7 @@
       var target = ev.target.closest("[data-action]");
       if (!target) return;
       var action = target.getAttribute("data-action");
-      var dataset = target.dataset;
+      var dataset = target.dataset || {};
 
       if (action === "open-char") {
         ev.preventDefault();
@@ -1139,6 +1206,21 @@
       } else if (action === "toggle-relations-expand") {
         state.relationsExpand = !state.relationsExpand;
         render();
+      } else if (action === "focus-rel") {
+        var fid = dataset.id || target.getAttribute("data-id") || "";
+        state.focusRel = (state.focusRel === fid) ? "" : fid;
+        render();
+      } else if (action === "clear-focus-rel") {
+        state.focusRel = "";
+        render();
+      } else if (action === "jump-relmap") {
+        var jid = dataset.id || "";
+        var jnode = null;
+        (DATA.relgraph && DATA.relgraph.nodes || []).forEach(function (n) { if (n.charId === jid) jnode = n; });
+        state.tab = "relations";
+        state.focusRel = jnode ? jnode.id : "";
+        render();
+        scrollToView();
       } else if (action === "toggle-theme") {
         toggleTheme();
       } else if (action === "set-font") {
@@ -1229,9 +1311,23 @@
 
     var input = document.getElementById("read-input");
     if (input) {
-      input.addEventListener("change", function () { setRead(input.value); });
+      var readTimer = null;
+      var commitRead = function () {
+        if (readTimer) { clearTimeout(readTimer); readTimer = null; }
+        setRead(input.value);
+      };
+      input.addEventListener("change", commitRead);
       input.addEventListener("keydown", function (ev) {
-        if (ev.key === "Enter") { ev.preventDefault(); setRead(input.value); }
+        if (ev.key === "Enter") { ev.preventDefault(); commitRead(); }
+      });
+      input.addEventListener("input", function () {
+        var v = input.value.replace(/[^0-9]/g, "");
+        if (v !== input.value) input.value = v;
+        if (readTimer) clearTimeout(readTimer);
+        readTimer = setTimeout(function () {
+          var n = parseInt(input.value, 10);
+          if (isFinite(n) && n >= 1 && n <= 120) setRead(n);
+        }, 400);
       });
     }
     var prev = document.getElementById("read-prev");
