@@ -15,7 +15,7 @@
   var FONT_KEY = "hlm.font";
   var ONBOARD_KEY = "hlm.onboarded";
 
-  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, compare: [], garden: [], meta: META };
+  var DATA = { characters: [], chapters: [], analyses: [], contexts: [], family: null, panci: [], poems: [], glossary: [], hardwords: {}, compare: [], garden: [], contrast: {}, meta: META };
   var charById = {};
   var charByName = {};
   var chapByN = {};
@@ -35,6 +35,7 @@
     learnChapter: 1,
     spoilerMode: "none",
     annotate: true,
+    contrast: false,
     group: "all",
     charQuery: "",
     query: ""
@@ -148,6 +149,7 @@
     hw.forEach(function (ch) { if (ch && Number.isInteger(ch.chapter) && Array.isArray(ch.words)) DATA.hardwords[ch.chapter] = ch.words; });
     DATA.compare = Array.isArray(window.HLM_COMPARE) ? window.HLM_COMPARE : [];
     DATA.garden = Array.isArray(window.HLM_GARDEN) ? window.HLM_GARDEN : [];
+    DATA.contrast = window.HLM_CONTRAST || {};
     DATA.characters.sort(function (a, b) {
       var ca = a.firstAppearance && a.firstAppearance.chapter || 999;
       var cb = b.firstAppearance && b.firstAppearance.chapter || 999;
@@ -419,7 +421,17 @@
     out.push('<p class="chapter-progress-note">已读到第 ' + state.readAt + " 回：你正在读的这一回，可以放心查看本页。</p>");
     out.push("</div>");
 
-    out.push(guideSection("本回导读", "novel", '<p class="summary-text">' + guideText(chapter.summary, hwWords) + "</p>"));
+        var plainText = (DATA.contrast && DATA.contrast[chapter.n]) || "";
+    var summaryHtml;
+    if (plainText && state.contrast) {
+      summaryHtml = '<div class="contrast-cols"><div class="contrast-col"><div class="contrast-label">📖 原文导读</div><div class="summary-text">' + guideText(chapter.summary, hwWords) + '</div></div><div class="contrast-col"><div class="contrast-label">🗣️ 白话对照</div><div class="summary-text">' + esc(plainText) + "</div></div></div>";
+    } else {
+      summaryHtml = '<p class="summary-text">' + guideText(chapter.summary, hwWords) + "</p>";
+    }
+    if (plainText) {
+      summaryHtml += '<div class="contrast-toggle"><button type="button" class="btn btn-ghost btn-sm" data-action="toggle-contrast">' + (state.contrast ? "收起白话对照" : "一键对照白话（此段较难）") + "</button></div>";
+    }
+    out.push(guideSection("本回导读", "novel", summaryHtml));
 
     var chars = chapter.newCharacters || [];
     if (chars.length) {
@@ -1141,6 +1153,9 @@
         render();
       } else if (action === "toggle-annotate") {
         state.annotate = !state.annotate;
+        render();
+      } else if (action === "toggle-contrast") {
+        state.contrast = !state.contrast;
         render();
       }
     });
