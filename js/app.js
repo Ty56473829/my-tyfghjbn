@@ -356,6 +356,62 @@
     return state.annotate ? annotateText(text, words) : esc(text);
   }
 
+  function findHardWord(text) {
+    var t = String(text || "").trim();
+    if (!t) return null;
+    var best = null;
+    Object.keys(DATA.hardwords || {}).forEach(function (ch) {
+      (DATA.hardwords[ch] || []).forEach(function (w) {
+        if (best) return;
+        if (w.word === t) best = w;
+        else if (w.word.indexOf(t) >= 0 || t.indexOf(w.word) >= 0) {
+          if (Math.abs(w.word.length - t.length) <= 2) best = w;
+        }
+      });
+    });
+    return best;
+  }
+
+  function findVariant(text) {
+    var t = String(text || "").trim();
+    var list = window.HLM_VARIANTS || [];
+    for (var i = 0; i < list.length; i++) if (list[i].word === t) return list[i];
+    return null;
+  }
+
+  function removeSelectionButton() {
+    var b = document.getElementById("sel-lookup");
+    if (b && b.parentNode) b.parentNode.removeChild(b);
+  }
+
+  function showSelectionButton() {
+    removeSelectionButton();
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+    var text = String(sel.toString() || "").trim();
+    if (!text || text.length > 30) return;
+    var range = sel.getRangeAt(0);
+    var view = document.getElementById("view");
+    if (view && !view.contains(range.commonAncestorContainer)) return;
+    var rect = range.getBoundingClientRect ? range.getBoundingClientRect() : null;
+    if (!rect) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sel-lookup";
+    btn.id = "sel-lookup";
+    btn.textContent = "🔍 查「" + text + "」";
+    btn.style.left = Math.max(8, Math.min(rect.left, (window.innerWidth || 360) - 170)) + "px";
+    btn.style.top = Math.max(8, rect.top - 42) + "px";
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var entry = findHardWord(text);
+      var variant = findVariant(text);
+      showWordPopup(text, entry ? entry.meaning : (variant ? "" : "未收录该词。可点击正文中带虚线的词，或到「原著注解」按回查阅。"), entry);
+      removeSelectionButton();
+    });
+    document.body.appendChild(btn);
+  }
+
   function closeWordPopup() {
     var p = document.getElementById("word-popup");
     if (p && p.parentNode) p.parentNode.removeChild(p);
@@ -363,15 +419,20 @@
 
   function showWordPopup(word, meaning, entry) {
     closeWordPopup();
-    var cat = entry ? (HARDWORD_CATS[entry.category] || { icon: "", label: "" }) : { icon: "", label: "" };
+    var variant = findVariant(word);
+    var cat = entry ? (HARDWORD_CATS[entry.category] || null) : null;
+    var typeLabel = variant ? "文本辨析" : (cat && cat.key === "dianzhang" ? "背景补充" : "字词释义");
+    var catText = typeLabel;
+    if (cat && cat.label) catText += " · " + (cat.icon ? cat.icon + " " : "") + cat.label;
     var pop = document.createElement("div");
     pop.className = "word-popup";
     pop.id = "word-popup";
     var html = '<button type="button" class="word-popup-close" aria-label="关闭">×</button>';
     html += '<div class="word-popup-word">' + esc(word) + '</div>';
-    if (cat.label) html += '<div class="word-popup-cat">' + cat.icon + " " + esc(cat.label) + "</div>";
+    html += '<div class="word-popup-cat">' + esc(catText) + "</div>";
     if (entry && entry.example) html += '<div class="word-popup-example">「' + esc(entry.example) + "」</div>";
-    html += '<div class="word-popup-meaning">' + esc(meaning) + "</div>";
+    if (meaning) html += '<div class="word-popup-meaning">' + esc(meaning) + "</div>";
+    if (variant) html += '<div class="word-popup-variant"><span class="lit-label">文本辨析</span><p>' + esc(variant.text) + "</p></div>";
     pop.innerHTML = html;
     document.body.appendChild(pop);
     var closeBtn = pop.querySelector(".word-popup-close");
@@ -1332,6 +1393,16 @@
       }
       if (!(ev.target && ev.target.closest && ev.target.closest(".word-popup"))) closeWordPopup();
     });
+
+    document.addEventListener("mouseup", function (ev) {
+      if (ev.target && ev.target.closest && ev.target.closest(".sel-lookup, .word-popup")) return;
+      setTimeout(showSelectionButton, 10);
+    });
+    document.addEventListener("touchend", function (ev) {
+      if (ev.target && ev.target.closest && ev.target.closest(".sel-lookup, .word-popup")) return;
+      setTimeout(showSelectionButton, 10);
+    });
+    document.addEventListener("scroll", removeSelectionButton, true);
 
     document.addEventListener("input", function (ev) {
       if (ev.target.id === "char-filter") {
