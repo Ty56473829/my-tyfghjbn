@@ -796,3 +796,41 @@ mark.hw-hl { background: var(--gold-soft); color: var(--ink); border-radius: 3px
 .ft-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--sans); font-size: .74rem; color: var(--ink-soft); background: var(--paper-2); border: 1px dashed var(--line); border-radius: var(--radius-sm); padding: .4rem .7rem; margin-bottom: .7rem; }
 .ft-legend-item { white-space: nowrap; }
 
+/* ---------- 人物关系图（SVG 四类连线） ---------- */
+.rel-legend { display: flex; flex-wrap: wrap; gap: .9rem; font-family: var(--sans); font-size: .76rem; color: var(--ink-soft); margin: .2rem 0 .7rem; }
+.rel-legend-item { display: inline-flex; align-items: center; gap: .4rem; }
+.rel-line { width: 2rem; height: 0; border-top: 2px solid #2b2723; display: inline-block; }
+.rel-line.marriage { border-color: #9c2b23; }
+.rel-line.qin { border-top-style: dashed; border-color: #3f516b; }
+.rel-line.servant { border-top-style: dotted; border-color: #8a8073; }
+.relmap-wrap { overflow-x: auto; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--white); padding: .6rem; }
+.relmap { display: block; }
+
+/* ---------- 人物库增强：状态 / 本回新出场 / 时间线 ---------- */
+.char-status { display: inline-block; font-family: var(--sans); font-size: .66rem; border-radius: 999px; padding: .06rem .45rem; margin-left: .35rem; vertical-align: middle; }
+.char-status.is-now { color: var(--jade); background: var(--jade-soft); }
+.char-status.is-future { color: var(--ink-faint); background: var(--paper-3); }
+.char-status.is-gone { color: var(--red-dark); background: var(--red-soft); }
+.char-card.is-future { opacity: .5; }
+.char-card.is-future .char-card-name { letter-spacing: .1em; }
+.new-this-chapter { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .2rem 0 .8rem; font-size: .86rem; color: var(--red-dark); background: var(--gold-soft); border: 1px dashed var(--gold); border-radius: var(--radius-sm); padding: .45rem .7rem; }
+.char-timeline { margin: .6rem 0 .9rem; overflow-x: auto; padding-bottom: .3rem; }
+.ctl-axis { display: flex; gap: 0; position: relative; min-width: max-content; padding-top: .2rem; }
+.ctl-node { display: flex; flex-direction: column; align-items: center; gap: .2rem; background: none; border: none; cursor: pointer; padding: .1rem .5rem; position: relative; font: inherit; }
+.ctl-node:not(:last-child)::after { content: ""; position: absolute; top: .55rem; left: 50%; width: 100%; height: 2px; background: var(--line); z-index: 0; }
+.ctl-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--white); border: 2px solid var(--red); z-index: 1; }
+.ctl-node:hover .ctl-dot { background: var(--red); }
+.ctl-ch { font-family: var(--sans); font-size: .68rem; color: var(--red-dark); font-weight: 600; white-space: nowrap; }
+.ctl-title { font-size: .72rem; color: var(--ink-soft); white-space: nowrap; }
+.detail-actions { display: flex; gap: .5rem; margin-top: .5rem; }
+
+/* ---------- 脂批 / 版本差异 ---------- */
+.lit-item { display: flex; gap: .6rem; align-items: flex-start; margin-bottom: .6rem; font-size: .88rem; color: var(--ink-soft); line-height: 1.75; }
+.lit-item p { margin: 0; text-align: justify; }
+.lit-label { flex: 0 0 auto; font-family: var(--sans); font-size: .7rem; color: #fff; background: var(--red); border-radius: 4px; padding: .1rem .5rem; margin-top: .15rem; }
+.focus-info { margin-top: 1rem; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--paper-2); padding: .8rem 1rem; }
+.focus-title { font-size: 1.05rem; color: var(--red-dark); margin-bottom: .5rem; }
+.focus-rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .9rem; }
+.focus-rel-list li { font-size: .88rem; color: var(--ink-soft); }
+.focus-rel-type { display: inline-block; font-family: var(--sans); font-size: .68rem; color: #fff; background: var(--ink-soft); border-radius: 4px; padding: 0 .4rem; margin-right: .3rem; }
+
