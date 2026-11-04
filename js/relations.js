@@ -219,27 +219,38 @@
     var nodes = graph.nodes || [];
     var edges = graph.edges || [];
 
-    var colW = 168, rowH = 52, nodeW = 118, nodeH = 32, topPad = 50, leftPad = 12;
-    var gi = {}; groups.forEach(function (g, i) { gi[g.id] = i; });
-    var rows = {}; groups.forEach(function (g) { rows[g.id] = 0; });
+    // 行 = 辈分（gen），列 = 横向槽位（u）；夫妻相邻、父母大致在子女上方
+    var unitW = 112, gap = 10, rowH = 72, nodeW = 100, nodeH = 32, topPad = 70, leftPad = 64;
+    var maxU = 0, maxGen = 1;
     var pos = {};
     nodes.forEach(function (n) {
-      var c = gi[n.group] != null ? gi[n.group] : 0;
-      var r = rows[n.group] || 0; rows[n.group] = r + 1;
-      var x = leftPad + c * colW + (colW - nodeW) / 2;
-      var y = topPad + r * rowH;
+      var u = n.u != null ? n.u : 0;
+      var gen = n.gen || 3;
+      if (u > maxU) maxU = u;
+      if (gen > maxGen) maxGen = gen;
+      var x = leftPad + u * (unitW + gap);
+      var y = topPad + (gen - 1) * rowH;
       pos[n.id] = { x: x, y: y, cx: x + nodeW / 2, cy: y + nodeH / 2, node: n };
     });
-    var maxRows = 1; groups.forEach(function (g) { if ((rows[g.id] || 1) > maxRows) maxRows = rows[g.id]; });
-    var W = leftPad * 2 + groups.length * colW;
-    var H = topPad + maxRows * rowH + 16;
+    var W = leftPad + (maxU + 1) * (unitW + gap) + 16;
+    var H = topPad + maxGen * rowH + 16;
 
     var out = [];
     out.push('<svg class="relmap" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="人物关系图" style="min-width:' + W + 'px">');
-    out.push('<style>.relmap text{font-family:inherit}.rm-edge{stroke-width:1.6;fill:none}.rm-edge.blood{stroke:#2b2723}.rm-edge.marriage{stroke:#9c2b23}.rm-edge.qin{stroke:#3f516b;stroke-dasharray:5 4}.rm-edge.servant{stroke:#8a8073;stroke-dasharray:1 4;stroke-linecap:round}.rm-edge.dim{opacity:.10}.rm-edge.hl{stroke-width:3}.rm-elabel{font-size:9.5px;fill:#5d554a}.rm-elabel.dim{opacity:.12}.rm-elabel-bg{fill:#fffdf8}.rm-elabel-bg.dim{opacity:.15}.rm-node rect{fill:#fffdf8;stroke:#d9cbb0;stroke-width:1.3}.rm-node text{font-size:12px;fill:#2b2723;pointer-events:none}.rm-node.dim rect{opacity:.28}.rm-node.dim text{opacity:.3}.rm-node.focus rect{stroke:#9c2b23;stroke-width:2.6}.rm-node.new rect{stroke:#b08a4f;stroke-width:2.6}.rm-node{cursor:pointer}</style>');
-    groups.forEach(function (g, i) {
-      var x = leftPad + i * colW + colW / 2;
-      out.push('<text x="' + x + '" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#7a1f19">' + esc(g.label) + '</text>');
+    out.push('<style>.relmap text{font-family:inherit}.rm-edge{stroke-width:1.6;fill:none}.rm-edge.blood{stroke:#2b2723}.rm-edge.marriage{stroke:#9c2b23}.rm-edge.qin{stroke:#3f516b;stroke-dasharray:5 4}.rm-edge.servant{stroke:#8a8073;stroke-dasharray:1 4;stroke-linecap:round}.rm-edge.dim{opacity:.10}.rm-edge.hl{stroke-width:3}.rm-elabel{font-size:9.5px;fill:#5d554a}.rm-elabel.dim{opacity:.12}.rm-elabel-bg{fill:#fffdf8}.rm-elabel-bg.dim{opacity:.15}.rm-node rect{fill:#fffdf8;stroke:#d9cbb0;stroke-width:1.3}.rm-node text{font-size:12px;fill:#2b2723;pointer-events:none}.rm-node.dim rect{opacity:.28}.rm-node.dim text{opacity:.3}.rm-node.focus rect{stroke:#9c2b23;stroke-width:2.6}.rm-node.new rect{stroke:#b08a4f;stroke-width:2.6}.rm-node{cursor:pointer}.rm-node.is-di rect{stroke:#b08a4f;stroke-width:2}.rm-node.is-shu rect{stroke:#3f516b;stroke-width:2}.rm-birth{fill:#8a8073}.rm-birth-di{fill:#b08a4f;font-weight:700}.rm-birth-shu{fill:#3f516b;font-weight:700}</style>');
+    groups.forEach(function (g) {
+      var ms = nodes.filter(function (n) { return n.group === g.id; });
+      if (!ms.length) return;
+      var sum = 0; ms.forEach(function (n) { sum += (n.u || 0); });
+      var au = sum / ms.length;
+      var x = leftPad + au * (unitW + gap) + nodeW / 2;
+      out.push('<text x="' + x.toFixed(1) + '" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#7a1f19">' + esc(g.label) + '</text>');
+    });
+    var GEN_LABELS = { 1: "祖父辈", 2: "父辈", 3: "子辈", 4: "孙辈", 5: "丫鬟仆从" };
+    Object.keys(GEN_LABELS).forEach(function (gk) {
+      var gy = topPad + (Number(gk) - 1) * rowH + nodeH / 2 + 4;
+      if (gy > H - 8) return;
+      out.push('<text x="6" y="' + gy.toFixed(1) + '" font-size="11" fill="#8a8073">' + GEN_LABELS[gk] + '</text>');
     });
     // 主仆关系不画线，仅作悬浮提示
     var servantMap = {};
@@ -279,12 +290,14 @@
       var rev = isRevealed(n);
       var isFocus = focus === n.id;
       var isNew = rev && n.chapter === readAt;
-      var cls = "rm-node" + (rev ? "" : " dim") + (isFocus ? " focus" : "") + (isNew ? " new" : "");
+      var cls = "rm-node" + (rev ? "" : " dim") + (isFocus ? " focus" : "") + (isNew ? " new" : "") + (n.birth === "di" ? " is-di" : "") + (n.birth === "shu" ? " is-shu" : "") + (n.concubine ? " is-concubine" : "");
       var label = rev ? n.name : "□□□";
       out.push('<g class="' + cls + '"' + (n.charId ? ' data-action="focus-rel" data-id="' + esc(n.id) + '"' : '') + '>');
       out.push('<rect x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" width="' + nodeW + '" height="' + nodeH + '" rx="7"/>');
       out.push('<text x="' + p.cx.toFixed(1) + '" y="' + (p.cy + 4).toFixed(1) + '" text-anchor="middle">' + esc(label) + '</text>');
       var servs = (servantMap[n.id] || []).map(function (sid) { var sn = null; nodes.forEach(function (x) { if (x.id === sid) sn = x; }); return sn ? sn.name : sid; });
+      if (rev && (n.birth === "di" || n.birth === "shu")) out.push('<text class="rm-birth rm-birth-' + n.birth + '" x="' + (p.x + nodeW - 4) + '" y="' + (p.y + 9) + '" text-anchor="end" font-size="8">' + (n.birth === "di" ? "嫡" : "庶") + "</text>");
+      if (rev && n.concubine) out.push('<text class="rm-birth rm-birth-shu" x="' + (p.x + nodeW - 4) + '" y="' + (p.y + 9) + '" text-anchor="end" font-size="8">妾</text>');
       out.push('<title>' + esc((rev ? n.name : "未出场") + (servs.length ? "｜贴身仆从：" + servs.join("、") : "")) + '</title>');
       out.push("</g>");
     });
